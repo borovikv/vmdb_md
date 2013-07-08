@@ -1,28 +1,48 @@
+#-*- coding: utf-8 -*-
 from django.db import models
-# Create your models here.
 
 class Language(models.Model):
     RU = 'RU'
     EN = 'EN'
     RO = 'RO'
-    title = models.CharField(max_length=4)
+    LANGUAGE_CHOICES = (
+        (RU, RU,),
+        (RO, RO,),
+        (EN, EN,),
+    )
+    LANGUAGE_PRIORITY = (RU, RO, EN, )
+    title = models.CharField(max_length=4, choices=LANGUAGE_CHOICES, default=RU)
+    
+    def __unicode__(self):
+        return self.title
 
 class LanguageTitle(models.Model):
     language = models.ForeignKey(Language)
-    title = models.CharField(max_length=100)#, related_name='titles')
+    title = models.CharField(max_length=100)
+    
+    def __unicode__(self):
+        return self.title
     
     class Meta:
         abstract = True
 
 class LanguageTitleContainer:
     
-    def title(self, language):
-        title = self.titles.filter(language=language)
-        if title.count():
-            return title[0]
-        else:
-            return 'The title for %s not exist'%language
+    def title(self, lang):
+        if not self.titles.count():
+            return
+        try:
+            language = Language.objects.get(title=lang)
+            return self.titles.get(language=language).title
+        except:
+            pass
     
+    def __unicode__(self):
+        for lang in Language.LANGUAGE_PRIORITY:
+            title = self.title(lang)
+            if title:
+                return title
+        return self.id
 
 class Branch(models.Model, LanguageTitleContainer):
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
@@ -31,14 +51,14 @@ class Branch(models.Model, LanguageTitleContainer):
         self.objects.filter(parent=self)
 
 class BranchTitle(LanguageTitle):
-    branch = models.ForeignKey(Branch)
+    branch = models.ForeignKey(Branch, related_name='titles')
 
 # properties
 class BusinessEntityType(models.Model, LanguageTitleContainer):
     pass
 
 class BusinessEntityTitle(LanguageTitle):
-    business_entity = models.ForeignKey(BusinessEntityType)
+    business_entity = models.ForeignKey(BusinessEntityType, related_name='titles')
     
 
 class Brand(models.Model):
@@ -58,11 +78,11 @@ class Enterprise(models.Model, LanguageTitleContainer):
     yp_url = models.URLField()
 
 class EnterpriseName(LanguageTitle):
-    enterprise = models.ForeignKey(Enterprise)   
+    enterprise = models.ForeignKey(Enterprise, related_name='titles')   
 
 class Contact(models.Model):
     enterpise = models.ForeignKey(Enterprise)
-    mail_code = models.CharField(max_length=10)
+    postal_code = models.CharField(max_length=10)
     house_number = models.CharField(max_length=10)
     office_number = models.CharField(max_length=10, null=True, blank=True)
     street = models.ForeignKey("Street")
@@ -74,28 +94,28 @@ class Contact(models.Model):
 
 class Street(models.Model, LanguageTitleContainer):
     pass
-class StreetL(LanguageTitle):
-    street = models.ForeignKey(Street)
+class StreetTitle(LanguageTitle):
+    street = models.ForeignKey(Street, related_name='titles')
 
 class Sector(models.Model, LanguageTitleContainer):
     pass
 class SectorTitle(LanguageTitle):
-    sector = models.ForeignKey(Sector)
+    sector = models.ForeignKey(Sector, related_name='titles')
     
 class Town(models.Model, LanguageTitleContainer):
     pass
 class TownTitle(LanguageTitle):
-    town = models.ForeignKey(Town)
+    town = models.ForeignKey(Town, related_name='titles')
 
 class Region(models.Model, LanguageTitleContainer):
     pass
 class RegionTitle(LanguageTitle):
-    region = models.ForeignKey(Region)
+    region = models.ForeignKey(Region, related_name='titles')
 
 class TopAdministrativeUnit(models.Model, LanguageTitleContainer):
     pass
 class AdministrativeUnitTitle(LanguageTitle):
-    region = models.ForeignKey(TopAdministrativeUnit)
+    region = models.ForeignKey(TopAdministrativeUnit, related_name='titles')
 
 class Url(models.Model):
     contact = models.ManyToManyField(Contact)
@@ -123,7 +143,7 @@ class Good(models.Model, LanguageTitleContainer):
     branch = models.ForeignKey(Branch, blank=True, null=True,)
     
 class GoodTitlte(LanguageTitle):
-    good = models.ForeignKey(Good)
+    good = models.ForeignKey(Good, related_name='titles')
 
 class Gproduce(models.Model):
     enterprise = models.ForeignKey(Enterprise)
@@ -137,13 +157,13 @@ class Position(models.Model, LanguageTitleContainer):
     pass
 
 class PositionTitle(LanguageTitle):
-    position = models.ForeignKey(Position)
+    position = models.ForeignKey(Position, related_name='titles')
 
 class Person(models.Model, LanguageTitleContainer):
     pass
 
 class PersonName(LanguageTitle):
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(Person, related_name='titles')
 
 class ContactPerson(models.Model):
     enterprise = models.ManyToManyField(Enterprise)
