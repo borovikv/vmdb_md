@@ -43,6 +43,9 @@ class LanguageTitleContainer:
             if title:
                 return title
         return self.id
+################################################################################
+#
+################################################################################
 
 class Branch(models.Model, LanguageTitleContainer):
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
@@ -90,7 +93,9 @@ class Contact(models.Model):
     town = models.ForeignKey("Town")
     region = models.ForeignKey("Region") 
     top_administrative_unit = models.ForeignKey('TopAdministrativeUnit', null=True, blank=True)
-    phones = models.ManyToManyField("Phone")
+    phone = models.ManyToManyField("Phone")
+    url = models.ManyToManyField("Url")
+    email = models.ManyToManyField("Email")
 
 class Street(models.Model, LanguageTitleContainer):
     pass
@@ -117,14 +122,6 @@ class TopAdministrativeUnit(models.Model, LanguageTitleContainer):
 class AdministrativeUnitTitle(LanguageTitle):
     region = models.ForeignKey(TopAdministrativeUnit, related_name='titles')
 
-class Url(models.Model):
-    contact = models.ManyToManyField(Contact)
-    url = models.URLField()
-    
-class Email(models.Model):
-    contact = models.ManyToManyField(Contact)
-    email = models.EmailField()
-
 class Phone(models.Model):
     phone = models.CharField(max_length=12)
     
@@ -132,9 +129,15 @@ class Phone(models.Model):
         return u'+373 022 %s'%self.phone
         
     def __unicode__(self):
-        return self.get_phone()
         #return '(+%(country_code)s) %(town_code)s %(telephone)s'%self.__dict__
-    
+        return self.get_phone()
+
+class Email(models.Model):
+    email = models.EmailField()
+
+class Url(models.Model):
+    url = models.URLField()
+
 ################################################################################
 #
 ################################################################################
@@ -142,7 +145,7 @@ class Good(models.Model, LanguageTitleContainer):
     parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
     branch = models.ForeignKey(Branch, blank=True, null=True,)
     
-class GoodTitlte(LanguageTitle):
+class GoodTitle(LanguageTitle):
     good = models.ForeignKey(Good, related_name='titles')
 
 class Gproduce(models.Model):
@@ -166,10 +169,10 @@ class PersonName(LanguageTitle):
     person = models.ForeignKey(Person, related_name='titles')
 
 class ContactPerson(models.Model):
-    enterprise = models.ManyToManyField(Enterprise)
+    enterprise = models.ForeignKey(Enterprise)
     person = models.ForeignKey(Person)
     position = models.ForeignKey(Position)
-    phones = models.ManyToManyField(Phone)
+    phone = models.ManyToManyField(Phone)
 
         
 ################################################################################
