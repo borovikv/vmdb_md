@@ -53,8 +53,7 @@ class EnterpriseAdmin(admin.ModelAdmin):
                GproduceInline, AdvertismentInline]
     exclude = ('last_change', )
     filter_horizontal = ('dealer', )
-
-
+    
 class StreetTitleInline(admin.TabularInline):
     model = StreetTitle
 class StreetAdmin(admin.ModelAdmin):
@@ -98,3 +97,11 @@ admin.site.register(Url)
 admin.site.register(Email)
 admin.site.register(Enterprise, EnterpriseAdmin)
 admin.site.register(Advertisment, AdvertismentAdmin)
+admin.site.register(Street ,StreetAdmin)
+admin.site.register(Sector ,SectorAdmin)
+admin.site.register(Town, TownAdmin)
+admin.site.register(Region, RegionAdmin)
+admin.site.register(TopAdministrativeUnit, TopAdministrativeUnitAdmin)
+admin.site.register(Good, GoodAdmin)
+admin.site.register(Position, PositionAdmin)
+admin.site.register(Person, PersonAdmin)

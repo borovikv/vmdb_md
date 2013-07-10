@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 from django.db import models
+import datetime
 
 class Language(models.Model):
     RU = 'RU'
@@ -79,6 +80,10 @@ class Enterprise(models.Model, LanguageTitleContainer):
     last_change = models.DateTimeField()
     logo = models.ImageField(upload_to='enterprise/logo', null=True, blank=True)
     yp_url = models.URLField()
+    
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.last_change = datetime.datetime.now()
+        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
 class EnterpriseName(LanguageTitle):
     enterprise = models.ForeignKey(Enterprise, related_name='titles')   
