@@ -61,7 +61,6 @@ class LanguageTitleTest(TestCase):
 #         field_def = get_fields(**def_objs)
 #         self.assertEqual(field_def, field_objs)
 
-class SearchTest(TestCase):
-    pass
+
 
             
