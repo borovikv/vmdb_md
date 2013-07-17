@@ -3,9 +3,7 @@
 
 {% block content %}
 	<form action="" method="post" >{% csrf_token %}
-		<ul>
-			{{ form }}  
-		</ul>
+		{{ form.line }}  
 		<input type="submit" name="go" value="go" class="button" />
 	</form>
 	<ul>
