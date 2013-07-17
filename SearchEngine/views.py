@@ -1,34 +1,52 @@
 #-*- coding: utf-8 -*-
 import re
 from itertools import chain
+from SearchEngine.forms import SearchForm
 
 
-ignorewords = set(['the', 'of', 'to', 'and', 'a', 'in', 'is', 'it', u'и', u'или', u'si'])
+ignorewords = set(['the', 'of', 'to', 'and', 'a', 'in', 'is', 'it', u'и', u'или', 
+                   u'si',])
 entyty_type = set(['SRL','S.R.L'])
 short_numbers = set(['901', '902', '903', '904'])
 
 def split_text(text):
     text = re.sub('|'.join(entyty_type), '', text, flags=re.U)
-    spliter = re.compile('[,\s\.]*', flags=re.U)
+    spliter = re.compile('[,\s]*', flags=re.U)
     words = flatten([to_common_form(word) for word in spliter.split(text) if suit(word)])
+    print words
     return list(set(words))
 
 def suit(word):
-    return word and not word in ignorewords
+    return bool(word and not word in ignorewords and not re.match('^\W$', word, re.U))
 
 def to_common_form(word):
+    word = word.lower()
+    
     tel_pattern = re.compile(r'^(\+\d{1,3}|0){0,1}[\d-]{3,16}', re.U)
     if tel_pattern.match(word):
-        return re.sub('^\+373|^0|-', '', word, flags=re.U)
-    return re.split('-', word.lower(), flags=re.U)
+        return [re.sub('^\+373|^0|-', '', word, flags=re.U)]
+    
+    email_patternt = re.compile(r'^[a-z0-9_.-]+@[a-z0-9_-]+\.[a-z]{3}$', re.U)
+    if email_patternt.match(word):
+        return [word]
+    
+    return re.split('-', word, flags=re.U)
 
 def flatten(listOfLists):
     "Flatten one level of nesting"
-    return chain.from_iterable(listOfLists)
+    #return chain.from_iterable(listOfLists)
+    return [item for sublist in listOfLists for item in sublist]
+
+
+
+def searchEnterprises(line):
+    pass
 
 
 def search(request):
-    pass
+    form = SearchForm(request.POST or None)
+    if form.isValid():
+        enterprises = searchEnterprises(form.line)
 
 def result(request):
     pass

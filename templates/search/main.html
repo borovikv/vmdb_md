@@ -1,0 +1,15 @@
+{% extends "base_html" %}
+{% block title %}Search{% endblock %}
+
+{% block content %}
+	<form>{% csrf_token %}
+		<ul>
+			{{ form.as_li }}  
+		</ul>
+	</form>
+	<ul>
+	{% for enterprise in enterprises %}
+		<li>{{ enterprise }}</li>      
+	{% endfor %}  
+	</ul>
+{% endblock %}

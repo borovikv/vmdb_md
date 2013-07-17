@@ -36,11 +36,13 @@ class LanguageTitleContainer:
             language = Language.objects.get(title=lang)
             return self.titles.get(language=language).title
         except:
+            print 'ex'
             pass
     
     def __unicode__(self):
         for lang in Language.LANGUAGE_PRIORITY:
             title = self.title(lang)
+            print title
             if title:
                 return title
         return self.id

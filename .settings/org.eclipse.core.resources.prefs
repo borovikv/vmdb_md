@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//DB/models.py=utf-8
 encoding//DB/tests.py=utf-8
+encoding//SearchEngine/forms.py=utf-8
 encoding//SearchEngine/tests.py=utf-8
 encoding//SearchEngine/views.py=utf-8
