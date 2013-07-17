@@ -54,5 +54,8 @@ def search(request):
     
     return render(request, 'search/main.html', {'form': form, 'enterprises': enterprises})
 
-def update_search_db(request):
-    pass
+def get_enterpise_fields(enterprise):
+    fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
+              'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
+              'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
+    return {}

@@ -3,8 +3,9 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, suit, to_common_form, flatten,\
-    searchEnterprises, update_search_db
+    searchEnterprises, get_enterpise_fields
 from DB.models import Enterprise
+from SearchEngine import models
 utils.setup_test_environment()
 
 class SearchTest(TestCase):
@@ -31,7 +32,6 @@ class SearchTest(TestCase):
     
     def test_search_url(self):
         self.assertEqual(reverse('search'), '/search/')
-        self.assertEqual(reverse('search-result'), '/search/result/')
     
     def test_login(self):
         text_line = {'line': u'Varo-Inform SRL реклама и дизайн'}
@@ -60,10 +60,27 @@ class SearchTest(TestCase):
     def test_search_enterprises(self):
         text_line = u'Varo-Inform SRL реклама и дизайн'
         enterprises = searchEnterprises(text_line)
-        varo = Enterprise.objects.filter(pk=1)
-        self.assertEqual(unicode(varo[0]), 'Varo-Inform')
+        varo = self.get_varoinform()
+        self.assertEqual(unicode(varo), 'Varo-Inform')
         self.assertIn(varo, enterprises)
         
+    def get_varoinform(self):
+        return Enterprise.objects.get(pk=1)
+        
+    def _test_create_from_enterprise(self):
+        varo = self.get_varoinform()
+        ew = models.EnterpriseWords.create_from_enterprise(varo)
+        test_ew = models.Words.objects.filter(enterprise=varo)
+        self.assertEqual(list(ew), list(test_ew))
     
-    def test_update_db(self):
-        update_search_db()
+    def test_get_enterpise_fields(self):
+        fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
+                  'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
+                  'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
+        fields.sort()
+        
+        varo = self.get_varoinform()
+        e_fields = get_enterpise_fields(varo).keys()
+        e_fields.sort()
+        self.assertEqual(e_fields, fields)
+        
