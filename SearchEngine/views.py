@@ -54,5 +54,5 @@ def search(request):
     
     return render(request, 'search/main.html', {'form': form, 'enterprises': enterprises})
 
-def result(request):
+def update_search_db(request):
     pass

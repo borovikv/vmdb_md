@@ -3,7 +3,7 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, suit, to_common_form, flatten,\
-    searchEnterprises
+    searchEnterprises, update_search_db
 from DB.models import Enterprise
 utils.setup_test_environment()
 
@@ -65,3 +65,5 @@ class SearchTest(TestCase):
         self.assertIn(varo, enterprises)
         
     
+    def test_update_db(self):
+        update_search_db()
