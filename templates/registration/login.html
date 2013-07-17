@@ -2,7 +2,7 @@
 {% block title %}Вход{% endblock %}
 {% block accaunt_form %}
 <div class="reg-header">
-	<h3>Войти или <a href="{% url 'register' %}?next={{ next|escape }}">Создать аккаунт</a></h3>
+	<h3>Войти</h3>
 </div>
 <div class="signin">
 	{% if form.errors %} 
@@ -20,6 +20,5 @@
 		<input type="submit" value="Вход" />
 		<input type="hidden" name="next" value="{{ next|escape }}"/>
 	</form>
-	<a href="#">Забыли пароль</a>
 </div>
 {% endblock %}
