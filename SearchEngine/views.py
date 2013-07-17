@@ -58,4 +58,9 @@ def get_enterpise_fields(enterprise):
     fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
               'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
               'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
+    'contact_set', 
+    'contactperson_set', 
+    'dealer', 
+    'gproduce_set', 
+    'titles'
     return {}

@@ -80,6 +80,7 @@ class SearchTest(TestCase):
         fields.sort()
         
         varo = self.get_varoinform()
+        print dir(varo)
         e_fields = get_enterpise_fields(varo).keys()
         e_fields.sort()
         self.assertEqual(e_fields, fields)
