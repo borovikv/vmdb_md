@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 import re
-from itertools import chain
 from SearchEngine.forms import SearchForm
-
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 
 ignorewords = set(['the', 'of', 'to', 'and', 'a', 'in', 'is', 'it', u'и', u'или', 
                    u'si',])
@@ -40,13 +40,19 @@ def flatten(listOfLists):
 
 
 def searchEnterprises(line):
-    pass
+    if not line:
+        return
+    return ['abc', 'cbc']
 
-
+@login_required
 def search(request):
     form = SearchForm(request.POST or None)
-    if form.isValid():
-        enterprises = searchEnterprises(form.line)
+    enterprises = None
+    if form.is_valid():
+        line = form.cleaned_data['line']
+        enterprises = searchEnterprises(line)
+    
+    return render(request, 'search/main.html', {'form': form, 'enterprises': enterprises})
 
 def result(request):
     pass

@@ -1,0 +1,25 @@
+{% extends "registration/base_account.html" %}
+{% block title %} Регистрация {% endblock %}
+{% block accaunt_form %}
+
+<div class="RegistrationForm">
+	<div class="reg-header">
+		<h3>Создать учетную запись или 
+		<a href="{% url 'login' %}?next={{ next|escape }}">
+			войти
+		</a>
+		</h3>
+	</div>
+	<div class="reg-form">
+		<form action="" method="post">{% csrf_token %}
+			<table>
+			{{form.as_table}}
+			</table>
+			<input type="hidden" name="next" value="{{ next|escape }}"/>
+			<input type="submit" value="Создать учетную запись "/>
+			
+		</form>
+	</div>
+	
+</div>
+{% endblock %}

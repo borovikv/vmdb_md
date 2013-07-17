@@ -2,5 +2,5 @@
 from django import forms
 
 class SearchForm(forms.Form):
-    line = forms.CharField(widget=forms.TextInput(attrs={'class':'search'}))
+    line = forms.CharField(widget=forms.TextInput(attrs={'class':'search'}), required=False)
     

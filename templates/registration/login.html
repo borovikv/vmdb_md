@@ -1,0 +1,25 @@
+{% extends "registration/base_account.html" %}
+{% block title %}Вход{% endblock %}
+{% block accaunt_form %}
+<div class="reg-header">
+	<h3>Войти или <a href="{% url 'register' %}?next={{ next|escape }}">Создать аккаунт</a></h3>
+</div>
+<div class="signin">
+	{% if form.errors %} 
+		<div class="error">Неверное имя или пароль</div>
+	{% endif %}
+	<form action="" method="post"> {% csrf_token %}
+		<label for="username">Имя польлозателя:</label> 
+		<br />
+		<input type="text" name="username" value="" id="username"/>
+		<br />
+		<label for="password">Пароль:</label>
+		<br />
+		<input type="password" name="password" value="" id="passsword"/>
+		<br />
+		<input type="submit" value="Вход" />
+		<input type="hidden" name="next" value="{{ next|escape }}"/>
+	</form>
+	<a href="#">Забыли пароль</a>
+</div>
+{% endblock %}
