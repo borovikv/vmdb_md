@@ -6,6 +6,9 @@
 		{{ form.line }}  
 		<input type="submit" name="go" value="go" class="button" />
 	</form>
+	<div>
+		<span>Прошло:</span> <span>{{ elapsed|floatformat:6|default:"0" }}</span> сек
+	</div>
 	<ul>
 	{% for enterprise in enterprises %}
 		<li>{{ enterprise }}</li>      

@@ -3,9 +3,10 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, suit, to_common_form, flatten,\
-    searchEnterprises, get_enterpise_fields
+    searchEnterprises
 from DB.models import Enterprise
 from SearchEngine import models
+from pprint import pprint
 utils.setup_test_environment()
 
 class SearchTest(TestCase):
@@ -73,15 +74,5 @@ class SearchTest(TestCase):
         test_ew = models.Words.objects.filter(enterprise=varo)
         self.assertEqual(list(ew), list(test_ew))
     
-    def test_get_enterpise_fields(self):
-        fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
-                  'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
-                  'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
-        fields.sort()
-        
-        varo = self.get_varoinform()
-        print dir(varo)
-        e_fields = get_enterpise_fields(varo).keys()
-        e_fields.sort()
-        self.assertEqual(e_fields, fields)
+    
         

@@ -3,6 +3,16 @@ import re
 from SearchEngine.forms import SearchForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+import time
+from pprint import pprint
+
+class Profiler(object):
+    def __enter__(self):
+        self._startTime = time.time()
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        self.elapsed = time.time()-self._startTime
 
 ignorewords = set(['the', 'of', 'to', 'and', 'a', 'in', 'is', 'it', u'и', u'или', 
                    u'si',])
@@ -47,20 +57,24 @@ def searchEnterprises(line):
 @login_required
 def search(request):
     form = SearchForm(request.POST or None)
-    enterprises = None
     if form.is_valid():
         line = form.cleaned_data['line']
-        enterprises = searchEnterprises(line)
+        with Profiler() as p:
+            enterprises = searchEnterprises(line)
+        elapsed = p.elapsed
+        print elapsed
     
-    return render(request, 'search/main.html', {'form': form, 'enterprises': enterprises})
+    return render(request, 'search/main.html', locals())
 
-def get_enterpise_fields(enterprise):
-    fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
-              'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
-              'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
-    'contact_set', 
-    'contactperson_set', 
-    'dealer', 
-    'gproduce_set', 
-    'titles'
-    return {}
+def get_all_fields(obj):
+    # make a list of field/values.    
+    filds  = dict([[field.name, field.value_from_object(obj)] 
+                   for field in obj._meta.fields])
+    # add many_to_many relation fields
+    filds.update(dict([[field.name, field.value_to_string(obj)] 
+                       for field in obj._meta.local_many_to_many]))
+    return filds 
+
+def result_append(result, field):
+    result[field.name] += field.value
+    

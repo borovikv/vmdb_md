@@ -1,7 +1,36 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 import datetime
+import inspect
+from SearchEngine.views import flatten
 
+class Field(object):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+        
+    def __str__(self):
+        return self.name
+    
+    
+
+def get_names(obj):
+    if obj:
+        return obj.all_titles()
+    return []
+
+def get_call_results(obj, start):
+    result = []
+    for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
+        if name.startswith(start):
+            field = method()
+            try:
+                result.extend(field)
+            except:
+                result.append(field)
+    return result
+               
+               
 class Language(models.Model):
     RU = 'RU'
     EN = 'EN'
@@ -37,6 +66,8 @@ class LanguageTitleContainer:
             return self.titles.get(language=language).title
         except:
             pass
+    def all_titles(self):
+        return [title.title for title in self.titles.all()]
     
     def __unicode__(self):
         for lang in Language.LANGUAGE_PRIORITY:
@@ -84,6 +115,41 @@ class Enterprise(models.Model, LanguageTitleContainer):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.last_change = datetime.datetime.now()
         return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+    
+    def enterprise_products(self):
+        return Field('GoodTitle', 
+                      flatten( [ product.good.all_titles() 
+                                 for product in self.gproduce_set.all() 
+                                 if product.good ] ) )
+     
+    def enterprise_branches(self):
+        return Field('BranchTitle', 
+                      flatten( [ product.good.branch.all_titles() 
+                                 for product in self.gproduce_set.all() 
+                                 if product.good.branch ] ) )
+     
+    def enterprise_brands(self):
+        return Field('Brand', 
+                        [ brand.title for brand in self.dealer.all()
+                                 if brand ])
+    
+    def enterprise_titles(self):
+        return Field('EnterpriseName', LanguageTitleContainer.all_titles(self))   
+    
+    def enterprise_contacts(self):
+        return flatten([ x.all() for x in self.contact_set.all() if x])
+     
+    def enterprise_persons(self):
+        return flatten([ x.all() for x in self.contactperson_set.all() if x])
+    
+    def get_enterprise_fields(self):
+        result = {}
+        fields = get_call_results(self, 'enterprise') 
+        for field in fields:
+            result.setdefault(field.name, []).extend(field.value)
+        return result
+     
+    
 
 class EnterpriseName(LanguageTitle):
     enterprise = models.ForeignKey(Enterprise, related_name='titles')   
@@ -101,7 +167,34 @@ class Contact(models.Model):
     phone = models.ManyToManyField("Phone")
     url = models.ManyToManyField("Url")
     email = models.ManyToManyField("Email")
-
+    
+    def contact_phones(self):
+        return Field('Phone', [phone.phone for phone in self.phone.all() if phone])
+    
+    def contact_urls(self):
+        return Field('Url', [url.url for url in self.url.all() if url])
+    
+    def contact_emails(self):
+        return Field('Email', [email.email for email in self.email.all() if email])
+    
+    def contact_street_names(self):
+        return Field('StreetTitle', get_names(self.street))
+    
+    def contact_sector_names(self):
+        return Field('SectorTitle', get_names(self.sector))
+    
+    def contact_town_names(self):
+        return Field('TownTitle', get_names(self.town))
+    
+    def contact_region_names(self):
+        return Field('RegionTitle', get_names(self.region))
+    
+    def contact_tau_names(self):
+        return Field('AdministrativeUnitTitle', get_names(self.top_administrative_unit))
+    
+    def all(self):
+        return get_call_results(self, 'contact')
+    
 class Street(models.Model, LanguageTitleContainer):
     pass
 class StreetTitle(LanguageTitle):
@@ -178,7 +271,15 @@ class ContactPerson(models.Model):
     person = models.ForeignKey(Person)
     position = models.ForeignKey(Position)
     phone = models.ManyToManyField(Phone)
-
+    
+    def person_names(self):
+        return Field('PersonName', get_names(self.person))
+    
+    def person_phone(self):
+        return Field('Phone', [phone.phone for phone in self.phone.all() if phone])
+    
+    def all(self):
+        return get_call_results(self, 'person')
         
 ################################################################################
 #
