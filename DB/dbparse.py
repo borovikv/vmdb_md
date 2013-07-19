@@ -7,7 +7,7 @@ import random
 def create_objects(mapping):
     return {}
 
-def get_fields(*args, **kwargs):
+def get_field_value(*args, **kwargs):
     return {kwargs.get(0): random.random()}
 
 def get_scheme(path):

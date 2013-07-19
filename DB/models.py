@@ -2,7 +2,6 @@
 from django.db import models
 import datetime
 import inspect
-from SearchEngine.views import flatten
 
 class Field(object):
     def __init__(self, name, value):
@@ -29,7 +28,14 @@ def get_call_results(obj, start):
             except:
                 result.append(field)
     return result
-               
+
+def obj_as_list(obj):
+    result = {}
+    for field in obj.get_all_fields():
+        name = field if isinstance(field, basestring) else field.name
+        field_value = obj.get_field_value(name, getattr(obj, name))
+        result[name] = field_value
+    return result              
                
 class Language(models.Model):
     RU = 'RU'
@@ -102,7 +108,7 @@ class Brand(models.Model):
  
 class Enterprise(models.Model, LanguageTitleContainer):
     business_entity = models.ForeignKey(BusinessEntityType)
-    dealer = models.ManyToManyField(Brand, null=True, blank=True)
+    brand = models.ManyToManyField(Brand, null=True, blank=True)
     
     creation = models.DateField(null=True, blank=True)
     foreing_capital = models.NullBooleanField(null=True, blank=True)
@@ -116,44 +122,37 @@ class Enterprise(models.Model, LanguageTitleContainer):
         self.last_change = datetime.datetime.now()
         return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
     
-    def enterprise_products(self):
-        return Field('GoodTitle', 
-                      flatten( [ product.good.all_titles() 
-                                 for product in self.gproduce_set.all() 
-                                 if product.good ] ) )
-     
-    def enterprise_branches(self):
-        return Field('BranchTitle', 
-                      flatten( [ product.good.branch.all_titles() 
-                                 for product in self.gproduce_set.all() 
-                                 if product.good.branch ] ) )
-     
-    def enterprise_brands(self):
-        return Field('Brand', 
-                        [ brand.title for brand in self.dealer.all()
-                                 if brand ])
-    
-    def enterprise_titles(self):
-        return Field('EnterpriseName', LanguageTitleContainer.all_titles(self))   
-    
-    def enterprise_contacts(self):
-        return flatten([ x.all() for x in self.contact_set.all() if x])
-     
-    def enterprise_persons(self):
-        return flatten([ x.all() for x in self.contactperson_set.all() if x])
-    
-    def get_enterprise_fields(self):
-        result = {}
-        fields = get_call_results(self, 'enterprise') 
-        for field in fields:
-            result.setdefault(field.name, []).extend(field.value)
-        return result
      
     
+    def get_all_fields(self):
+        links = [rel.get_accessor_name() for rel in self._meta.get_all_related_objects()]
+        return self._meta.fields + self._meta.local_many_to_many + links
+    
+    def get_field_value(self, name, value):
+        if name in ['brand',]:
+            return [brand.title for brand in value.all()]
+        
+        if name in ['contact_set', 'contactperson_set', 'gproduce_set']:
+            return [ obj.as_list() for obj in value.all() if obj]
+        
+        elif name == 'titles':
+            return self.all_titles()
+        
+        elif name in ('advertisment_set', 'enterprisewords_set', ):
+            return
+        
+        elif name == 'business_entity':
+            return value.all_titles()
+        else:
+            return value
+    
+    def as_list(self):
+        return obj_as_list(self)
+
 
 class EnterpriseName(LanguageTitle):
     enterprise = models.ForeignKey(Enterprise, related_name='titles')   
-
+    
 class Contact(models.Model):
     enterpise = models.ForeignKey(Enterprise)
     postal_code = models.CharField(max_length=10)
@@ -168,33 +167,21 @@ class Contact(models.Model):
     url = models.ManyToManyField("Url")
     email = models.ManyToManyField("Email")
     
-    def contact_phones(self):
-        return Field('Phone', [phone.phone for phone in self.phone.all() if phone])
+    def get_all_fields(self):
+        return self._meta.fields + self._meta.local_many_to_many
     
-    def contact_urls(self):
-        return Field('Url', [url.url for url in self.url.all() if url])
+    def get_field_value(self, name, value):
+        if name in ['street', 'sector', 'town', 'region', 'top_administrative_unit']:
+            return value.all_titles() if value else []
+        elif name in ['phone', 'url', 'email']:
+            return value.all()
+        return value
+
+    def as_list(self):    
+        return obj_as_list(self)
     
-    def contact_emails(self):
-        return Field('Email', [email.email for email in self.email.all() if email])
     
-    def contact_street_names(self):
-        return Field('StreetTitle', get_names(self.street))
-    
-    def contact_sector_names(self):
-        return Field('SectorTitle', get_names(self.sector))
-    
-    def contact_town_names(self):
-        return Field('TownTitle', get_names(self.town))
-    
-    def contact_region_names(self):
-        return Field('RegionTitle', get_names(self.region))
-    
-    def contact_tau_names(self):
-        return Field('AdministrativeUnitTitle', get_names(self.top_administrative_unit))
-    
-    def all(self):
-        return get_call_results(self, 'contact')
-    
+
 class Street(models.Model, LanguageTitleContainer):
     pass
 class StreetTitle(LanguageTitle):
@@ -224,7 +211,7 @@ class Phone(models.Model):
     phone = models.CharField(max_length=12)
     
     def get_phone(self):
-        return u'+373 022 %s'%self.phone
+        return u'+373-%s'%self.phone
         
     def __unicode__(self):
         #return '(+%(country_code)s) %(town_code)s %(telephone)s'%self.__dict__
@@ -233,8 +220,14 @@ class Phone(models.Model):
 class Email(models.Model):
     email = models.EmailField()
 
+    def __unicode__(self):
+        return self.email
+
 class Url(models.Model):
     url = models.URLField()
+    
+    def __unicode__(self):
+        return self.url
 
 ################################################################################
 #
@@ -250,6 +243,10 @@ class Gproduce(models.Model):
     enterprise = models.ForeignKey(Enterprise)
     good = models.ForeignKey(Good)
     gproduce  = models.BooleanField()
+    
+    def as_list(self):
+        return {'good': self.good.all_titles(), 
+                'branch': self.good.branch.all_titles() if self.good.branch else []}
 
 ################################################################################
 #
@@ -280,6 +277,9 @@ class ContactPerson(models.Model):
     
     def all(self):
         return get_call_results(self, 'person')
+    
+    def as_list(self):
+        return {'person_name': self.person.all_titles(), 'phone': self.phone.all()}
         
 ################################################################################
 #

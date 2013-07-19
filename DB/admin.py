@@ -52,7 +52,7 @@ class EnterpriseAdmin(admin.ModelAdmin):
     inlines = [ContactPersonAdmin, EnterpriseNameInline, ContactInline, 
                GproduceInline, AdvertismentInline]
     exclude = ('last_change', )
-    filter_horizontal = ('dealer', )
+    filter_horizontal = ('brand', )
     
 class StreetTitleInline(admin.TabularInline):
     model = StreetTitle

@@ -41,18 +41,7 @@ class Test(TestCase):
         btro = self.get_bt(self.ro, u'romanian')
         self.assertEqual(btro.__unicode__(), self.bcont.__unicode__())
         
-    def test_get_enterpise_fields(self):
-        fields = ['BranchTitle', 'GoodTitle', 'Brand', 'EnterpriseName', 
-                  'StreetTitle', 'SectorTitle', 'TownTitle', 'RegionTitle', 
-                  'AdministrativeUnitTitle', 'Phone', 'Email', 'Url', 'PersonName']
-        fields.sort()
-        
-        varo = Enterprise.objects.get(pk=1)
-        varo_fields = varo.get_enterprise_fields()
-        pprint(varo_fields)
-        e_fields = varo_fields.keys()
-        e_fields.sort()
-        self.assertEqual(e_fields, fields)
+    
     
 # class DbParserTest(TestCase):
 #     def test_get_model_fields(self):
