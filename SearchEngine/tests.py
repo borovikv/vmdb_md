@@ -6,7 +6,7 @@ from SearchEngine.views import split_text, suit, to_common_form, flatten,\
     searchEnterprises, get_enterprise_fields, get_words
 from DB.models import Enterprise
 from SearchEngine import models
-from pprint import pprint
+from utils.mpprint import mpprint
 utils.setup_test_environment()
 
 class SearchTest(TestCase):
@@ -81,7 +81,7 @@ class SearchTest(TestCase):
         
         varo = self.get_varoinform()
         varo_fields = get_enterprise_fields(varo)
-        pprint(varo_fields)
+        mpprint(varo_fields)
         e_fields = varo_fields.keys()
         e_fields.sort()
         self.assertEqual(e_fields, fields)
