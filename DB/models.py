@@ -1,9 +1,8 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 import datetime
-from SearchEngine.views import update_enterprisewords, get_words,\
-    get_enterprise_fields
 from SearchEngine.models import Words
+from DB.dbutils import get_enterprise_fields, get_words
 
 def obj_as_list(obj):
     result = {}
@@ -96,14 +95,18 @@ class Enterprise(models.Model, LanguageTitleContainer):
     
     words = models.ManyToManyField(Words)
 
+
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.last_change = datetime.datetime.now()
+        self.add_words()
+        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+    
+    def add_words(self):
         fields = get_enterprise_fields(self)
         words = get_words(fields)
         words = [Words.objects.get_or_create(word=word[0]) for word in words if word]
-        self.words.append(words)
-        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
-    
+        self.words.add(*words)
     
     def get_all_fields(self):
         links = [rel.get_accessor_name() for rel in self._meta.get_all_related_objects()]
@@ -119,7 +122,7 @@ class Enterprise(models.Model, LanguageTitleContainer):
         elif name == 'titles':
             return self.all_titles()
         
-        elif name in ('advertisment_set', 'enterprisewords_set', ):
+        elif name in ('advertisment_set', ):
             return
         
         elif name == 'business_entity':

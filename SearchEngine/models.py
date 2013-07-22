@@ -7,16 +7,6 @@ class Words(models.Model):
     def __unicode__(self):
         return self.word
 
-class EnterpriseWords(models.Model):
-    word = models.ForeignKey(Words)
-    enterprise = models.ForeignKey("DB.Enterprise")
-    
-    def __unicode__(self):
-        return "%s, %s"%(self.word, self.enterprise)
-    
-    @staticmethod
-    def create_from_enterprise(enterprise):
-        pass
     
     
     

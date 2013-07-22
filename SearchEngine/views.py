@@ -4,7 +4,7 @@ from SearchEngine.forms import SearchForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 import time
-from SearchEngine.models import Words, EnterpriseWords
+from SearchEngine.models import Words
 
 class Profiler(object):
     def __enter__(self):
@@ -77,7 +77,7 @@ def searchEnterprises(line):
     for word in words:
         word = Words.objects.filter(word=word)
         if word:
-            epks = EnterpriseWords.objects.filter(word=word[0]).values_list('enterprise', flat=True)
+            epks = [1]
             result.update(epks)
     es = list()
     for epk in result:
@@ -85,44 +85,5 @@ def searchEnterprises(line):
     return es
 
 #-------------------------------------------------------------------------------
-def update_enterprisewords(enterprise):
-    enterprise.enterprisewords_set.all().delete()
-    fields = get_enterprise_fields(enterprise)
-    for word in get_words(fields):
-        word = Words.objects.get_or_create(word=word)[0]
-        ew = EnterpriseWords(word=word, enterprise=enterprise)
-        ew.save()
-
-def get_enterprise_fields(enterprise):
-    result = {}
-    for field, field_value in enterprise.as_list().items():
-        
-        if field in ('contact_set', 'contactperson_set', 'gproduce_set', ):
-            for name, value in get_member_fields(field_value).items():
-                result.setdefault(name, []).extend(value)
-        
-        elif field in  ('dealer',  'titles', 'brand'):
-            result[field] = field_value
-    return result
-
-def get_member_fields(field_value):
-    result = {}
-    for member in field_value:
-        for name, value in member.items():
-            value = value_as_list(name, value)
-            if value != None:
-                result.setdefault(name, []).extend(value)
-    return result
 
 
-def value_as_list(name, value):
-    if name in ('sector', 'town', 'street', 'region', 'good', 'branch', 'person_name', 'top_administrative_unit'):
-        return value
-    if name in ('email', 'phone', 'url'):
-        return [unicode(obj) for obj in value]
-    
-    
-def get_words(enterprise):
-    words = flatten( split_text(word) for word in flatten(enterprise.values()))
-    
-    return list(set(words))
