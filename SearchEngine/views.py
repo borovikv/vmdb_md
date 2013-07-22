@@ -67,6 +67,7 @@ def search(request):
             enterprises = searchEnterprises(line)
         elapsed = p.elapsed
         print elapsed
+        print enterprises
     
     return render(request, 'search/main.html', locals())
 
