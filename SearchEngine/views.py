@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 import time
 from SearchEngine.models import Words
+from DB.models import Enterprise
 
 class Profiler(object):
     def __enter__(self):
@@ -73,16 +74,18 @@ def searchEnterprises(line):
     if not line:
         return
     words = split_text(line)
-    result = set()
+    result = Enterprise.objects.all()
+    fail = []
     for word in words:
-        word = Words.objects.filter(word=word)
-        if word:
-            epks = [1]
-            result.update(epks)
-    es = list()
-    for epk in result:
-        es.append(epk)
-    return es
+        w = Words.objects.filter(word=word)
+        if w:
+            w = w[0]
+            result = result.filter(words=w)
+        else:
+            fail.append(word)
+    if len(fail) == len(words):
+        return []
+    return result[:]
 
 #-------------------------------------------------------------------------------
 

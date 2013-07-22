@@ -62,9 +62,15 @@ class SearchTest(TestCase):
         varo = self.get_varoinform()
         self.assertEqual(varo.title(Language.RU).lower(), 'varo-inform')
         varo.save()
-        print Words.objects.count()
+        print varo.words.count()
         enterprises = searchEnterprises(text_line)
+        print enterprises
         self.assertIn(varo, enterprises)
+    
+    def test_fail_search(self):    
+        text_line = u'aabkajsd asdjisdk asdjfimsfo998'
+        result = searchEnterprises(text_line)
+        self.assertTrue(len(result)==0)
         
     def get_varoinform(self):
         return Enterprise.objects.get(pk=1)

@@ -4,7 +4,6 @@ Created on Jul 22, 2013
 @author: drifter
 '''
 from compiler.ast import flatten
-from SearchEngine.views import split_text
 
 def get_enterprise_fields(enterprise):
     result = {}
@@ -36,6 +35,7 @@ def value_as_list(name, value):
     
     
 def get_words(enterprise):
+    from SearchEngine.views import split_text
     words = flatten( split_text(word) for word in flatten(enterprise.values()))
     
     return list(set(words))
