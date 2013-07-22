@@ -1,11 +1,12 @@
 #-*- coding: utf-8 -*-
 import re
-from SearchEngine.forms import SearchForm
+import time
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-import time
+
+from SearchEngine.forms import SearchForm
 from SearchEngine.models import Words
-from DB.models import Enterprise
+import DB
 
 class Profiler(object):
     def __enter__(self):
@@ -66,8 +67,6 @@ def search(request):
         with Profiler() as p:
             enterprises = searchEnterprises(line)
         elapsed = p.elapsed
-        print elapsed
-        print enterprises
     
     return render(request, 'search/main.html', locals())
 
@@ -75,7 +74,7 @@ def searchEnterprises(line):
     if not line:
         return
     words = split_text(line)
-    result = Enterprise.objects.all()
+    result = DB.models.Enterprise.objects.all()
     fail = []
     for word in words:
         w = Words.objects.filter(word=word)

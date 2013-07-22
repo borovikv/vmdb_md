@@ -1,11 +1,15 @@
 #-*- coding: utf-8 -*-
+"""
+SearchEngine
+"""
 from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, is_word_suit, to_common_form, flatten,\
     searchEnterprises
-from DB.models import Enterprise, Language
 from SearchEngine.models import Words
+from DB.models import Enterprise, Language
+
 utils.setup_test_environment()
 
 class SearchTest(TestCase):
@@ -71,6 +75,16 @@ class SearchTest(TestCase):
         text_line = u'aabkajsd asdjisdk asdjfimsfo998'
         result = searchEnterprises(text_line)
         self.assertTrue(len(result)==0)
+    
+    def test_fail_and_search(self):
+        word = Words(word='xxxyyy')
+        word.save()
+        text_line = u'Varo-Inform SRL реклама и дизайн xxxyyy'
+        varo = self.get_varoinform()
+        varo.save()
+        result = searchEnterprises(text_line)
+        self.assertTrue(len(result)==0)
+        
         
     def get_varoinform(self):
         return Enterprise.objects.get(pk=1)
