@@ -40,6 +40,7 @@ class Test(TestCase):
         words = get_words(fields)
         enterprise.save()
         ewcount = enterprise.enterprisewords_set.count()
+        print ewcount, len(words)
         self.assertEqual(len(words), ewcount)
     
 
