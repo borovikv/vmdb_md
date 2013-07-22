@@ -1,5 +1,4 @@
 from django.db import models
-from DB.models import Enterprise
 
 # Create your models here.
 class Words(models.Model):
@@ -10,7 +9,7 @@ class Words(models.Model):
 
 class EnterpriseWords(models.Model):
     word = models.ForeignKey(Words)
-    enterprise = models.ForeignKey(Enterprise)
+    enterprise = models.ForeignKey("DB.Enterprise")
     
     def __unicode__(self):
         return "%s, %s"%(self.word, self.enterprise)

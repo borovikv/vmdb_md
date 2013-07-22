@@ -2,6 +2,8 @@
 from django.db import models
 import datetime
 import inspect
+from SearchEngine.views import get_enterprise_fields, get_words
+from SearchEngine.models import Words, EnterpriseWords
 
 class Field(object):
     def __init__(self, name, value):
@@ -120,6 +122,14 @@ class Enterprise(models.Model, LanguageTitleContainer):
     
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.last_change = datetime.datetime.now()
+        
+        self.enterprisewords_set.all().delete()
+        fields = get_enterprise_fields(self)
+        for word in get_words(fields):
+            word = Words.objects.get_or_create(word=word)[0]
+            ew = EnterpriseWords(word=word, enterprise=self)
+            ew.save()
+            
         return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
     
      
