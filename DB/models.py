@@ -1,35 +1,9 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 import datetime
-import inspect
-from SearchEngine.views import get_enterprise_fields, get_words
-from SearchEngine.models import Words, EnterpriseWords
-
-class Field(object):
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-        
-    def __str__(self):
-        return self.name
-    
-    
-
-def get_names(obj):
-    if obj:
-        return obj.all_titles()
-    return []
-
-def get_call_results(obj, start):
-    result = []
-    for name, method in inspect.getmembers(obj, predicate=inspect.ismethod):
-        if name.startswith(start):
-            field = method()
-            try:
-                result.extend(field)
-            except:
-                result.append(field)
-    return result
+from SearchEngine.views import update_enterprisewords, get_words,\
+    get_enterprise_fields
+from SearchEngine.models import Words
 
 def obj_as_list(obj):
     result = {}
@@ -120,19 +94,16 @@ class Enterprise(models.Model, LanguageTitleContainer):
     logo = models.ImageField(upload_to='enterprise/logo', null=True, blank=True)
     yp_url = models.URLField()
     
+    words = models.ManyToManyField(Words)
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.last_change = datetime.datetime.now()
-        
-        self.enterprisewords_set.all().delete()
         fields = get_enterprise_fields(self)
-        for word in get_words(fields):
-            word = Words.objects.get_or_create(word=word)[0]
-            ew = EnterpriseWords(word=word, enterprise=self)
-            ew.save()
-            
+        words = get_words(fields)
+        words = [Words.objects.get_or_create(word=word[0]) for word in words if word]
+        self.words.append(words)
         return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
     
-     
     
     def get_all_fields(self):
         links = [rel.get_accessor_name() for rel in self._meta.get_all_related_objects()]
@@ -278,16 +249,7 @@ class ContactPerson(models.Model):
     person = models.ForeignKey(Person)
     position = models.ForeignKey(Position)
     phone = models.ManyToManyField(Phone)
-    
-    def person_names(self):
-        return Field('PersonName', get_names(self.person))
-    
-    def person_phone(self):
-        return Field('Phone', [phone.phone for phone in self.phone.all() if phone])
-    
-    def all(self):
-        return get_call_results(self, 'person')
-    
+       
     def as_list(self):
         return {'person_name': self.person.all_titles(), 'phone': self.phone.all()}
         

@@ -4,7 +4,7 @@ from SearchEngine.forms import SearchForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 import time
-from urlparse import urlparse
+from SearchEngine.models import Words, EnterpriseWords
 
 class Profiler(object):
     def __enter__(self):
@@ -22,10 +22,10 @@ short_numbers = set(['901', '902', '903', '904'])
 def split_text(text):
     text = re.sub('|'.join(entyty_type), '', text, flags=re.U)
     spliter = re.compile('[,\s]*', flags=re.U)
-    words = flatten([to_common_form(word) for word in spliter.split(text) if suit(word)])
+    words = flatten([to_common_form(word) for word in spliter.split(text) if is_word_suit(word)])
     return list(set(words))
 
-def suit(word):
+def is_word_suit(word):
     return bool(word and not word in ignorewords and not re.match('^\W$', word, re.U))
 
 def to_common_form(word):
@@ -56,13 +56,7 @@ def flatten(listOfLists):
     #return chain.from_iterable(listOfLists)
     return [item for sublist in listOfLists for item in sublist]
 
-
-
-def searchEnterprises(line):
-    if not line:
-        return
-    return ['abc', 'cbc']
-
+#-------------------------------------------------------------------------------
 @login_required
 def search(request):
     form = SearchForm(request.POST or None)
@@ -75,7 +69,29 @@ def search(request):
     
     return render(request, 'search/main.html', locals())
 
+def searchEnterprises(line):
+    if not line:
+        return
+    words = split_text(line)
+    result = set()
+    for word in words:
+        word = Words.objects.filter(word=word)
+        if word:
+            epks = EnterpriseWords.objects.filter(word=word[0]).values_list('enterprise', flat=True)
+            result.update(epks)
+    es = list()
+    for epk in result:
+        es.append(epk)
+    return es
 
+#-------------------------------------------------------------------------------
+def update_enterprisewords(enterprise):
+    enterprise.enterprisewords_set.all().delete()
+    fields = get_enterprise_fields(enterprise)
+    for word in get_words(fields):
+        word = Words.objects.get_or_create(word=word)[0]
+        ew = EnterpriseWords(word=word, enterprise=enterprise)
+        ew.save()
 
 def get_enterprise_fields(enterprise):
     result = {}

@@ -2,17 +2,18 @@
 from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
-from SearchEngine.views import split_text, suit, to_common_form, flatten,\
+from SearchEngine.views import split_text, is_word_suit, to_common_form, flatten,\
     searchEnterprises, get_enterprise_fields, get_words
-from DB.models import Enterprise
+from DB.models import Enterprise, Language
 from SearchEngine import models
 from utils.mpprint import mpprint
+from SearchEngine.models import Words
 utils.setup_test_environment()
 
 class SearchTest(TestCase):
     def test_suit(self):
         words = [',', '', '.', 'abc', u'и', 'and']
-        is_suit = [suit(w) for w in words]
+        is_suit = [is_word_suit(w) for w in words]
         self.assertEqual(is_suit, [False, False, False, True, False, False])
     
     def test_to_common_form(self):
@@ -60,9 +61,11 @@ class SearchTest(TestCase):
         
     def test_search_enterprises(self):
         text_line = u'Varo-Inform SRL реклама и дизайн'
-        enterprises = searchEnterprises(text_line)
         varo = self.get_varoinform()
-        self.assertEqual(unicode(varo), 'Varo-Inform')
+        self.assertEqual(varo.title(Language.RO).lower(), 'varo-inform')
+        varo.save()
+        print Words.objects.count()
+        enterprises = searchEnterprises(text_line)
         self.assertIn(varo, enterprises)
         
     def get_varoinform(self):

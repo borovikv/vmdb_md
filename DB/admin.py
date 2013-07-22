@@ -51,7 +51,7 @@ class AdvertismentAdmin(admin.ModelAdmin):
 class EnterpriseAdmin(admin.ModelAdmin):
     inlines = [ContactPersonAdmin, EnterpriseNameInline, ContactInline, 
                GproduceInline, AdvertismentInline]
-    exclude = ('last_change', )
+    exclude = ('last_change', 'words')
     filter_horizontal = ('brand', )
     
 class StreetTitleInline(admin.TabularInline):
