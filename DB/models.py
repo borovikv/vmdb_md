@@ -55,7 +55,7 @@ class LanguageTitleContainer:
             title = self.title(lang)
             if title:
                 return title
-        return self.id
+        return self.pk
 ################################################################################
 #
 ################################################################################
@@ -105,8 +105,9 @@ class Enterprise(models.Model, LanguageTitleContainer):
     def add_words(self):
         fields = get_enterprise_fields(self)
         words = get_words(fields)
-        words = [Words.objects.get_or_create(word=word[0]) for word in words if word]
-        self.words.add(*words)
+        words = [Words.objects.get_or_create(word=word)[0] for word in words if word]
+        for word in words:
+            self.words.add(word)
     
     def get_all_fields(self):
         links = [rel.get_accessor_name() for rel in self._meta.get_all_related_objects()]

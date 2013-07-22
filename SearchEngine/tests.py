@@ -60,7 +60,7 @@ class SearchTest(TestCase):
     def test_search_enterprises(self):
         text_line = u'Varo-Inform SRL реклама и дизайн'
         varo = self.get_varoinform()
-        self.assertEqual(varo.title(Language.RO).lower(), 'varo-inform')
+        self.assertEqual(varo.title(Language.RU).lower(), 'varo-inform')
         varo.save()
         print Words.objects.count()
         enterprises = searchEnterprises(text_line)

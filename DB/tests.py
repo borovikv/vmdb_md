@@ -3,6 +3,7 @@ from django.test import TestCase
 from DB.models import BranchTitle, Language, Branch, Enterprise
 from DB.dbutils import get_enterprise_fields, get_words
 from utils.mpprint import mpprint
+from DB.views import create_test_varo
 
 
 class Test(TestCase):
@@ -15,6 +16,7 @@ class Test(TestCase):
     
     def test_language_empty_container(self):
         bcont = Branch()
+        bcont.save()
         self.assertEqual(bcont.pk, bcont.__unicode__())
     
     def get_bt(self, lang, text):
@@ -100,6 +102,9 @@ class Test(TestCase):
         ewcount = enterprise.words.count()
         print ewcount, len(words)
         self.assertEqual(len(words), ewcount)
+        
+    def _test_create_test(self):
+        create_test_varo()
     
 
 
