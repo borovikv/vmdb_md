@@ -28,31 +28,45 @@ def split_text(text):
     words = flatten([to_common_form(word) for word in spliter.split(text) if is_word_suit(word)])
     return list(set(words))
 
-def is_word_suit(word):
-    return bool(word and not word in ignorewords and not re.match('^\W$', word, re.U))
-
 def to_common_form(word):
     word = word.lower()
     
-    tel_pattern = re.compile(r'^(\+\d{1,3}\s*|0){0,1}[\d-]{3,16}', re.U)
-    if tel_pattern.match(word):
-        rep_pattern = '^\+373[\s-]*0{0,1}|^0|-'
-        return [re.sub(rep_pattern, '', word, flags=re.U)]
+    if is_phone(word):
+        return [convert_phone(word)]
     
-    email_pattern = re.compile(r'^[a-z0-9_.-]+@[a-z0-9_-]+\.[a-z]{3}$', re.U)
-    if email_pattern.match(word):
+    elif is_email(word):
         return [word]
     
-    url_pattern = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-    if url_pattern.match(word):
+    elif is_url(word):
         return [word]
+    
     return re.split('-', word, flags=re.U)
+
+def is_word_suit(word):
+    return bool(word and not word in ignorewords and not re.match('^\W$', word, re.U))
+
+
+def is_url(word):
+    url_pattern = re.compile(r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'#domain... 
+        r'localhost|'#localhost... 
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'# ...or ip 
+        r'(?::\d+)?'# optional port
+        r'(?:/?|[/?]\S+)$', 
+        re.IGNORECASE)
+    return bool(url_pattern.match(word))
+
+def is_email(word):
+    email_pattern = re.compile(r'^[a-z0-9_.-]+@[a-z0-9_-]+\.[a-z]{3}$', re.U)
+    return bool(email_pattern.match(word))
+
+def is_phone(word):
+    tel_pattern = re.compile(r'^(\+\d{1,3}\s*|0){0,1}[\d-]{3,16}', re.U)
+    return bool(tel_pattern.match(word))
+
+def convert_phone(word):
+    rep_pattern = '^\+373[\s-]*0{0,1}|^0|-'
+    return re.sub(rep_pattern, '', word, flags=re.U)
 
 def flatten(listOfLists):
     "Flatten one level of nesting"
