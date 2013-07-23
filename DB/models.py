@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 import datetime
-from SearchEngine.models import Words
+import SearchEngine
 from DB.dbutils import get_enterprise_fields, get_words
 
 def obj_as_list(obj):
@@ -93,7 +93,7 @@ class Enterprise(models.Model, LanguageTitleContainer):
     logo = models.ImageField(upload_to='enterprise/logo', null=True, blank=True)
     yp_url = models.URLField()
     
-    words = models.ManyToManyField(Words)
+    words = models.ManyToManyField(SearchEngine.models.Words)
 
 
 
@@ -105,7 +105,7 @@ class Enterprise(models.Model, LanguageTitleContainer):
     def add_words(self):
         fields = get_enterprise_fields(self)
         words = get_words(fields)
-        words = [Words.objects.get_or_create(word=word)[0] for word in words if word]
+        words = [SearchEngine.models.Words.objects.get_or_create(word=word)[0] for word in words if word]
         for word in words:
             self.words.add(word)
     
