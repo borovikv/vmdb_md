@@ -6,7 +6,7 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, is_word_suit, to_common_form, flatten,\
-    searchEnterprises
+    searchEnterprises, search_and
 from SearchEngine.models import Words
 from DB.models import Enterprise, Language
 
@@ -59,35 +59,48 @@ class SearchTest(TestCase):
         self.client.login(username='vladimir', password='1')
         response = self.client.post(reverse('search'), text_line)
         self.assertEqual(response.status_code, 200)
+        print response.context['enterprises']
         self.assertTrue(response.context['enterprises'] == None)
         
     def test_search_enterprises(self):
         text_line = u'Varo-Inform SRL реклама и дизайн'
-        varo = self.get_varoinform()
-        self.assertEqual(varo.title(Language.RU).lower(), 'varo-inform')
-        varo.save()
-        print varo.words.count()
-        enterprises = searchEnterprises(text_line)
-        print enterprises
-        self.assertIn(varo, enterprises)
+        result = self.search_varo(text_line)
+        print result
+        self.assertIn(self.get_varoinform(), result)
     
     def test_fail_search(self):    
         text_line = u'aabkajsd asdjisdk asdjfimsfo998'
-        result = searchEnterprises(text_line)
-        self.assertTrue(len(result)==0)
+        result = self.search_varo(text_line)
+        self.assertTrue(not result)
     
     def test_fail_and_search(self):
         word = Words(word='xxxyyy')
         word.save()
         text_line = u'Varo-Inform SRL реклама и дизайн xxxyyy'
+        result = self.search_varo(text_line)
+        print result
+        self.assertTrue(not result)
+    
+    def test_search_single_word(self):
+        text_line = u'Varo'
+        result = self.search_varo(text_line)
+        print result
+        self.assertIn(self.get_varoinform(), result)
+        
+    def test_get_varoinform(self):    
+        varo = self.get_varoinform()
+        self.assertEqual(varo.title(Language.RU).lower(), 'varo-inform')
+    
+    #---------------------------------------------------------------------------
+    def search_varo(self, text_line, func=search_and):
         varo = self.get_varoinform()
         varo.save()
-        result = searchEnterprises(text_line)
-        self.assertTrue(len(result)==0)
-        
-        
+        print varo.words.count()
+        return searchEnterprises(text_line, func)
+         
     def get_varoinform(self):
         return Enterprise.objects.get(pk=1)
+    
         
     
     

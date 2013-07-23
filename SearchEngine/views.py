@@ -3,6 +3,7 @@ import re
 import time
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.db.models import Q
 
 from SearchEngine.forms import SearchForm
 from SearchEngine.models import Words
@@ -65,28 +66,35 @@ def search(request):
     if form.is_valid():
         line = form.cleaned_data['line']
         with Profiler() as p:
-            enterprises = searchEnterprises(line)
+            enterprises = searchEnterprises(line, search_and)
         elapsed = p.elapsed
     
     return render(request, 'search/main.html', locals())
 
-def searchEnterprises(line):
-    if not line:
-        return
-    words = split_text(line)
-    result = DB.models.Enterprise.objects.all()
-    fail = []
-    for word in words:
-        w = Words.objects.filter(word=word)
-        if w:
-            w = w[0]
-            result = result.filter(words=w)
-        else:
-            fail.append(word)
-    if len(fail) == len(words):
-        return []
+
+def search_and(words):
+    result = DB.models.Enterprise.objects.filter(words=words[0])
+    for word in words[1:]:
+        result = result.filter(words=word)
+    
     return result[:]
 
+
+def search_or(words):
+    result = DB.models.Enterprise.objects.filter(words__in=words).distinct()
+    return result[:]
+
+def searchEnterprises(line, func):
+    words = filter(None, [ get_obj_or_None(Words, word=word) for word in split_text(line) ])
+    if not words:
+        return
+    return func(words)
+        
+def get_obj_or_None(model, *args, **kwargs):
+    obj = model.objects.filter(**kwargs)
+    if obj:
+        return obj[0]
+    return None
 #-------------------------------------------------------------------------------
 
 
