@@ -6,7 +6,7 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, is_word_suit, to_common_form, flatten,\
-    searchEnterprises, search_and
+    searchEnterprises, search_and, search_max, get_or_create_words
 from SearchEngine.models import Words
 from DB.models import Enterprise, Language
 
@@ -91,6 +91,22 @@ class SearchTest(TestCase):
         varo = self.get_varoinform()
         self.assertEqual(varo.title(Language.RU).lower(), 'varo-inform')
     
+    def test_max_search(self):
+        word = Words(word='xxxyyy')
+        word.save()
+        text_line = u'Varo-Inform SRL реклама и дизайн xxxyyy'
+        result = self.search_varo(text_line, search_max)
+        print result
+        self.assertTrue(result)
+    
+    def test_fail_max_search(self):
+        get_or_create_words('xxxyyy', 'wwwxxx', 'wsjsdie')
+        print Words.objects.get(word='xxxyyy')
+        text_line = 'xxxyyy wwwxxx wsjsdie'
+        result = self.search_varo(text_line, search_max)
+        print result
+        self.assertTrue(not result)
+        
     #---------------------------------------------------------------------------
     def search_varo(self, text_line, func=search_and):
         varo = self.get_varoinform()

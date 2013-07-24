@@ -93,22 +93,41 @@ def search_and(words):
     
     return result[:]
 
-
 def search_or(words):
     result = DB.models.Enterprise.objects.filter(words__in=words).distinct()
     return result[:]
 
+def search_max(words):
+    result = DB.models.Enterprise.objects
+    fails = []
+    for word in words:
+        temp = result.filter(words=word)
+        if temp:
+            result = temp
+        else:
+            fails.append(word)
+    if len(words) == len(fails):
+        return []
+    return result[:]
+
 def searchEnterprises(line, func):
-    words = filter(None, [ get_obj_or_None(Words, word=word) for word in split_text(line) ])
+    words = get_words_from_line(line)
     if not words:
         return
     return func(words)
+
+def get_words_from_line(line):
+    return filter(None, [get_obj_or_None(Words, word=word) for word in split_text(line)])
         
 def get_obj_or_None(model, *args, **kwargs):
     obj = model.objects.filter(**kwargs)
     if obj:
         return obj[0]
     return None
+
+def get_or_create_words(*words):
+    get_or_create = lambda word: Words.objects.get_or_create(word=word)
+    return [get_or_create(word) for word in words]
 #-------------------------------------------------------------------------------
 
 
