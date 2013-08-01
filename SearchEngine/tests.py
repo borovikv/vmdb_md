@@ -6,7 +6,7 @@ from django.test import TestCase, utils
 
 from django.core.urlresolvers import reverse
 from SearchEngine.views import split_text, is_word_suit, to_common_form, flatten,\
-    searchEnterprises, search_and, search_max, get_or_create_words
+    searchEnterprises, search_all, search_max, get_or_create_words
 from SearchEngine.models import Words
 from DB.models import Enterprise, Language
 
@@ -108,7 +108,7 @@ class SearchTest(TestCase):
         self.assertTrue(not result)
         
     #---------------------------------------------------------------------------
-    def search_varo(self, text_line, func=search_and):
+    def search_varo(self, text_line, func=search_all):
         varo = self.get_varoinform()
         varo.save()
         print varo.words.count()

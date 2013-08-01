@@ -80,20 +80,20 @@ def search(request):
     if form.is_valid():
         line = form.cleaned_data['line']
         with Profiler() as p:
-            enterprises = searchEnterprises(line, search_and)
+            enterprises = searchEnterprises(line, search_all)
         elapsed = p.elapsed
     
     return render(request, 'search/main.html', locals())
 
 
-def search_and(words):
+def search_all(words):
     result = DB.models.Enterprise.objects.filter(words=words[0])
     for word in words[1:]:
         result = result.filter(words=word)
     
     return result[:]
 
-def search_or(words):
+def search_at_least_one(words):
     result = DB.models.Enterprise.objects.filter(words__in=words).distinct()
     return result[:]
 
