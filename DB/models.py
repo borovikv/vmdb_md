@@ -218,7 +218,6 @@ class Url(models.Model):
 #
 ################################################################################
 class Good(models.Model, LanguageTitleContainer):
-    parent = models.ForeignKey('self', blank=True, null=True, related_name='children')
     branch = models.ForeignKey(Branch, blank=True, null=True,)
     
 class GoodTitle(LanguageTitle):
