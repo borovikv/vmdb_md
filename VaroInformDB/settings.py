@@ -130,7 +130,8 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'django_extensions',
     'DB',
-    'SearchEngine'
+    'SearchEngine',
+    'DBAuthentication'
 )
 
 # A sample logging configuration. The only tangible logging
