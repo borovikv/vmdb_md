@@ -14,6 +14,6 @@ class RegisteredDatabases(models.Model):
     user_id = models.PositiveIntegerField()
     
     def __unicode__(self):
-        return self.user_id + ": " + self.database 
+        return "%s, %s"%(self.user_id , self.database) 
 
 
