@@ -1,28 +1,18 @@
-'''
+"""
 Created on Jul 22, 2013
 
 @author: drifter
-'''
-from SearchEngine.views import split_text, flatten
+"""
+from sengine.views import split_text
+from utils.utils import flatten
 
-def get_enterprise_fields(enterprise):
-    result = {}
-    for field, field_value in enterprise.as_list().items():
-        
-        if field in ('contact_set', 'contactperson_set', 'gproduce_set', ):
-            for name, value in get_member_fields(field_value).items():
-                result.setdefault(name, []).extend(value)
-        
-        elif field in  ('dealer',  'titles', 'brand'):
-            result[field] = field_value
-    return result
 
 def get_member_fields(field_value):
     result = {}
     for member in field_value:
         for name, value in member.items():
             value = value_as_list(name, value)
-            if value != None:
+            if value:
                 result.setdefault(name, []).extend(value)
     return result
 

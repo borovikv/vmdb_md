@@ -10,7 +10,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-#/home/drifter/development/aptana/VaroInformDB/
+#/home/drifter/development/aptana/varodb/
 PROGEGET_FOLDER = os.path.dirname(os.path.dirname(__file__))
 
 DATABASES = {
@@ -83,7 +83,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -93,7 +93,7 @@ SECRET_KEY = 'u295_k_67$%=0-u0=nhe^=8ax=g^5))@^!7ve!@js(uipkos@c'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -106,10 +106,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'VaroInformDB.urls'
+ROOT_URLCONF = 'varodb.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'VaroInformDB.wsgi.application'
+WSGI_APPLICATION = 'varodb.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -129,9 +129,9 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django_extensions',
-    'DB',
-    'SearchEngine',
-    'DBAuthentication'
+    'dbe',
+    'sengine',
+    'dbregister'
 )
 
 # A sample logging configuration. The only tangible logging

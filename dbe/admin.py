@@ -4,10 +4,10 @@ Created on Jul 9, 2013
 @author: drifter
 """
 from django.contrib import admin
-from DB.models import BranchTitle, Branch, BusinessEntityTitle, \
+from dbe.models import BranchTitle, Branch, BusinessEntityTitle, \
     BusinessEntityType, Brand, ContactPerson, Enterprise, Phone, Contact, \
-    EnterpriseName, Gproduce, Advertisement, AdvertisementText, Url, Email, \
-    PersonName, Person, PositionTitle, Position, GoodTitle, Good, \
+    EnterpriseTitle, Gproduce, Advertisement, AdvertisementText, Url, Email, \
+    PersonTitle, Person, PositionTitle, Position, GoodTitle, Good, \
     AdministrativeUnitTitle, TopAdministrativeUnit, RegionTitle, Region, \
     TownTitle, Town, SectorTitle, Sector, StreetTitle, Street, Language
 
@@ -35,7 +35,7 @@ class ContactPersonAdmin(admin.TabularInline):
 
 
 class EnterpriseNameInline(admin.TabularInline):
-    model = EnterpriseName
+    model = EnterpriseTitle
 
 
 class ContactInline(admin.StackedInline):
@@ -124,7 +124,7 @@ class PositionAdmin(admin.ModelAdmin):
 
 
 class PersonNameInline(admin.TabularInline):
-    model = PersonName
+    model = PersonTitle
 
 
 class PersonAdmin(admin.ModelAdmin):
