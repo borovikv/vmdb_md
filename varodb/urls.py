@@ -12,8 +12,7 @@ urlpatterns = patterns('',
                        # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
                        url(r'^admin/', include(admin.site.urls)),
-                       url(r'^search/', include('sengine.urls')),
-                       url(r'^db_registry/', include('dbregister.urls')),
+                       url(r'^db_registry/', include('dbmanage.urls')),
 
                        url(r'^accounts/login/$', login, name="login"),
                        url(r'^accounts/logout/$', logout, name="logout"),

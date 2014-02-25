@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http.response import HttpResponseBadRequest
-from dbregister.models import Databases, RegisteredDatabases
-from dbregister import cypher
+from dbmanage.models import Databases, RegisteredDatabases
+from dbmanage import cypher
 from feedparser import binascii
 
 MAX_REGISTRATION = 3

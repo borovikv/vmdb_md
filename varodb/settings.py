@@ -130,8 +130,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'django_extensions',
     'dbe',
-    'sengine',
-    'dbregister'
+    'dbmanage'
 )
 
 # A sample logging configuration. The only tangible logging

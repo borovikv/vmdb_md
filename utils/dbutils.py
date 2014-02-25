@@ -3,7 +3,6 @@ Created on Jul 22, 2013
 
 @author: drifter
 """
-from sengine.views import split_text
 from utils.utils import flatten
 
 
@@ -22,9 +21,14 @@ def value_as_list(name, value):
         return value
     if name in ('email', 'phone', 'url'):
         return [unicode(obj) for obj in value]
-    
-    
-def get_words(enterprise):
-    words = flatten( split_text(word) for word in flatten(enterprise.values()))
-    
-    return list(set(words))
+
+
+def obj_as_dict(obj):
+    result = {}
+    for field in obj.get_all_fields():
+        field_name = field if isinstance(field, basestring) else field.name
+        obj_field = getattr(obj, field_name)
+        field_value = obj.get_field_value(field_name, obj_field)
+        result[field_name] = field_value
+
+    return result

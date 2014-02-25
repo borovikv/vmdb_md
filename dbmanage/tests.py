@@ -1,6 +1,6 @@
-from dbregister.models import Databases
-from dbregister.cypher import encode, decode, create_key
-from dbregister.views import registry, decrypt_password, get_registration_code
+from dbmanage.models import Databases
+from dbmanage.cypher import encode, decode, create_key
+from dbmanage.views import registry, decrypt_password, get_registration_code
 from django.test import TestCase, utils
 from django.test.client import Client
 import binascii
