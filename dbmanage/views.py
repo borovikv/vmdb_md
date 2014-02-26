@@ -1,5 +1,6 @@
 import csv
 from zipfile import ZipFile
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 import os
 from django.shortcuts import render
@@ -12,6 +13,7 @@ from feedparser import binascii
 from utils.dbutils import obj_as_dict
 from django.db import models
 import datetime
+from django.core.servers.basehttp import FileWrapper
 
 MAX_REGISTRATION = 3
 
@@ -85,25 +87,52 @@ def decrypt_password(epassword, database_id, user_id):
     return cypher.decode(epassword, cypher.create_key(database_id, user_id))
 
 
-def export(request):
+def update(request):
+    user_id = request.GET.get('user')
+    if not user_id:
+        return HttpResponseBadRequest("not user id")
+
+    try:
+        db = RegisteredDatabases.objects.get(user_id=user_id).database
+    except ObjectDoesNotExist:
+        return HttpResponseBadRequest("user not exist")
+
+    zipfile = export(db.last_update)
+    if not zipfile:
+        return HttpResponse("already updated %s" % now())
+
+    db.last_update = now()
+    db.save()
+    response = HttpResponse(FileWrapper(open(zipfile)), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(zipfile)
+    return response
+
+
+def export(last_update):
     app = models.get_app('dbe')
-    ms = models.get_models(app, include_auto_created=True)
+    ms = models.get_models(app, include_auto_created=False)
 
     dirname = get_dirname()
 
     for m in ms:
-        model_to_csv(m, dirname)
+        if last_update:
+            model_to_csv(m, dirname, last_change__gte=last_update)
+        else:
+            model_to_csv(m, dirname)
 
-    zip_csv_model(dirname)
+    zip_file = zip_csv_model(dirname)
 
     shutil.rmtree(dirname)
-    response = HttpResponse("ok")
-    return response
+
+    return zip_file
+
+
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 
 def get_dirname():
-    now = datetime.datetime.utcnow().replace(tzinfo=utc)
-    dirname = os.path.abspath("./export/%s" % now.strftime('%Y-%m-%d-%H-%M-%S'))
+    dirname = os.path.abspath("./export/%s" % now().strftime('%Y-%m-%d-%H-%M-%S'))
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     return dirname
@@ -111,9 +140,12 @@ def get_dirname():
 
 def model_to_csv(model, dirname, **kwargs):
     if kwargs:
-        objects = model.objects.filter(kwargs)
+        objects = model.objects.filter(**kwargs)
     else:
         objects = model.objects.all()
+
+    if not objects.count():
+        return
 
     model_name = model.__name__
     file_name = os.path.join(dirname, model_name) + '.csv'
@@ -124,11 +156,17 @@ def model_to_csv(model, dirname, **kwargs):
             row = obj_as_dict(o)
 
             writer.writerow([row[key] for key in row.keys()])
-    return dirname
 
 
 def zip_csv_model(path):
-    with ZipFile(path + ".zip", 'w') as zip_file:
+    zip_fn = path + ".zip"
+    with ZipFile(zip_fn, 'w') as zip_file:
         is_file = lambda f: os.path.isfile(os.path.join(path, f))
-        for filename in [f for f in os.listdir(path) if is_file(f)]:
+        files = [f for f in os.listdir(path) if is_file(f)]
+        if not files:
+            os.remove(zip_file.filename)
+            return
+        for filename in files:
             zip_file.write(os.path.join(path, filename), filename)
+
+    return zip_fn
