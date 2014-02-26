@@ -6,13 +6,13 @@ import os
 from django.shortcuts import render
 from django.http.response import HttpResponseBadRequest
 from django.utils.timezone import utc
+import datetime
 import shutil
-from dbmanage.models import Databases, RegisteredDatabases
+from dbmanage.models import Databases, RegisteredDatabases, Updating
 from dbmanage import cypher
 from feedparser import binascii
 from utils.dbutils import obj_as_dict
 from django.db import models
-import datetime
 from django.core.servers.basehttp import FileWrapper
 
 MAX_REGISTRATION = 3
@@ -90,19 +90,48 @@ def decrypt_password(epassword, database_id, user_id):
 def update(request):
     user_id = request.GET.get('user')
     if not user_id:
-        return HttpResponseBadRequest("not user id")
+        return HttpResponseBadRequest("haven't user id")
 
     try:
         db = RegisteredDatabases.objects.get(user_id=user_id).database
     except ObjectDoesNotExist:
         return HttpResponseBadRequest("user not exist")
 
+    if not Updating.objects.filter(last_update__gte=db.last_update).exists():
+        return HttpResponse("already updated %s vs %s -" % (db.last_update, Updating.objects.all()[0]))
+
+    upd_query = Updating.objects.order_by('-last_update')
+    
+    zip_with_highest_datetime = last_update_zip()
+    zip_suit = lambda: zip_with_highest_datetime and creation_datetime(zip_with_highest_datetime).date() >= upd_query[0].last_update > db.last_update
+    is_user_preview_updated = lambda: upd_query.count() >= 2 and db.last_update >= upd_query[1].last_update
+    if upd_query.exists() and zip_suit() and is_user_preview_updated():
+        return ZipResponse(zip_with_highest_datetime)
+
     zipfile = export(db.last_update)
     if not zipfile:
-        return HttpResponse("already updated %s" % now())
+        return HttpResponse("zip is null %s" % now())
 
     db.last_update = now()
     db.save()
+    return ZipResponse(zipfile)
+
+
+def last_update_zip():
+    dirname = "./export/"
+    is_file = lambda f: os.path.isfile(os.path.join(dirname, f))
+    fs = [f for f in os.listdir(dirname) if is_file(f)]
+    if len(fs):
+        fs.sort()
+        return os.path.join("./export", fs[-1])
+
+
+def creation_datetime(path):
+    name = os.path.splitext(os.path.basename(path))[0]
+    return datetime.datetime.strptime(name, get_time_format())
+
+
+def ZipResponse(zipfile):
     response = HttpResponse(FileWrapper(open(zipfile)), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(zipfile)
     return response
@@ -131,8 +160,12 @@ def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 
+def get_time_format():
+    return '%Y-%m-%d-%H-%M-%S'
+
+
 def get_dirname():
-    dirname = os.path.abspath("./export/%s" % now().strftime('%Y-%m-%d-%H-%M-%S'))
+    dirname = os.path.abspath("./export/%s" % now().strftime(get_time_format()))
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     return dirname
