@@ -4,10 +4,12 @@ import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.timezone import utc
+from utils.dbutils import obj_as_dict
 
 
 class ChangeAbstract(models.Model):
     last_change = models.DateTimeField()
+    exclude = ('last_change',)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.last_change = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -23,7 +25,7 @@ class Title(ChangeAbstract):
     title = models.CharField(max_length=100)
 
     def __unicode__(self):
-        return self.title
+        return repr({unicode(self.language): unicode(self.title)}).decode("unicode-escape")
 
     class Meta:
         abstract = True
@@ -40,15 +42,8 @@ class LanguageTitleContainer(ChangeAbstract):
         except ObjectDoesNotExist:
             return None
 
-    def all_titles(self):
-        return [title.title for title in self.titles.all()]
-
     def __unicode__(self):
-        for lang in Language.LANGUAGE_PRIORITY:
-            title = self.title(lang)
-            if title:
-                return title
-        return self.pk or self.__class__.__name__
+        return ",".join([unicode(t) for t in self.titles.all()])
 
     class Meta:
         abstract = True
@@ -95,7 +90,7 @@ class Brand(ChangeAbstract):
 
 
 class Enterprise(LanguageTitleContainer):
-    brand = models.ManyToManyField(Brand, null=True, blank=True)
+    brands = models.ManyToManyField(Brand, null=True, blank=True)
 
     business_entity = models.ForeignKey(BusinessEntityType)
     creation = models.DateField(null=True, blank=True)
@@ -120,9 +115,12 @@ class Contact(ChangeAbstract):
     town = models.ForeignKey("Town")
     region = models.ForeignKey("Region")
     top_administrative_unit = models.ForeignKey('TopAdministrativeUnit', null=True, blank=True)
-    phone = models.ManyToManyField("Phone")
-    url = models.ManyToManyField("Url")
-    email = models.ManyToManyField("Email")
+    phones = models.ManyToManyField("Phone")
+    urls = models.ManyToManyField("Url")
+    emails = models.ManyToManyField("Email")
+
+    def __unicode__(self):
+        return unicode(obj_as_dict(self))
 
 
 class Street(LanguageTitleContainer):
@@ -173,7 +171,7 @@ class Phone(ChangeAbstract):
         return u'+373-%s' % self.phone
 
     def __unicode__(self):
-        return self.get_phone()
+        return unicode({"type": self.type, "phone": self.phone})
 
 
 class Email(ChangeAbstract):
@@ -208,6 +206,10 @@ class Gproduce(ChangeAbstract):
     good = models.ForeignKey(Good)
     is_produce = models.BooleanField()
 
+    def __unicode__(self):
+        return unicode(obj_as_dict(self))
+
+
 ################################################################################
 #
 ################################################################################
@@ -233,7 +235,11 @@ class ContactPerson(ChangeAbstract):
     enterprise = models.ForeignKey(Enterprise)
     person = models.ForeignKey(Person)
     position = models.ForeignKey(Position)
-    phone = models.ManyToManyField(Phone)
+    phones = models.ManyToManyField(Phone)
+
+    def __unicode__(self):
+        return unicode(obj_as_dict(self))
+
 
 ################################################################################
 #

@@ -5,5 +5,6 @@ except ImportError:  # django < 1.4
 
 urlpatterns = patterns('dbmanage.views',
                        url(r'online/$', 'registry_online', name='db_registry-online'),
-                       url(r'phone/$', 'registry_phone', name='db_registry-online'),
+                       url(r'phone/$', 'registry_phone', name='db_registry-phone'),
+                       url(r'export/$', 'export', name='db_export'),
 )

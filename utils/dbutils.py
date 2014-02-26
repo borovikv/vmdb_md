@@ -3,32 +3,33 @@ Created on Jul 22, 2013
 
 @author: drifter
 """
-from utils.utils import flatten
-
-
-def get_member_fields(field_value):
-    result = {}
-    for member in field_value:
-        for name, value in member.items():
-            value = value_as_list(name, value)
-            if value:
-                result.setdefault(name, []).extend(value)
-    return result
-
-
-def value_as_list(name, value):
-    if name in ('sector', 'town', 'street', 'region', 'good', 'branch', 'person_name', 'top_administrative_unit'):
-        return value
-    if name in ('email', 'phone', 'url'):
-        return [unicode(obj) for obj in value]
+from django.db.models import ManyToManyField
+from django.db.models.related import RelatedObject
 
 
 def obj_as_dict(obj):
     result = {}
-    for field in obj.get_all_fields():
+    for field in get_all_fields(obj):
         field_name = field if isinstance(field, basestring) else field.name
-        obj_field = getattr(obj, field_name)
-        field_value = obj.get_field_value(field_name, obj_field)
-        result[field_name] = field_value
+        if hasattr(obj, 'exclude') and field_name in obj.exclude:
+            continue
+        obj_field = obj._meta.get_field_by_name(field_name)[0]
+        if not isinstance(obj_field, RelatedObject):
+            field_value = get_field_value(obj, obj_field)
+            result[field_name] = field_value
 
     return result
+
+
+def get_all_fields(obj):
+        return obj.__class__._meta.get_all_field_names()
+
+
+def get_field_value(obj, field):
+    if isinstance(field, ManyToManyField):
+        return [v.pk for v in field.value_from_object(obj).all()]
+    else:
+        value = field.value_from_object(obj)
+        if isinstance(value, basestring):
+            value = unicode(value).encode('utf-8')
+        return value

@@ -30,7 +30,7 @@ class BusinessEntityAdmin(admin.ModelAdmin):
 
 class ContactPersonAdmin(admin.TabularInline):
     model = ContactPerson
-    filter_horizontal = ('phone',)
+    filter_horizontal = ('phones',)
     extra = 1
 
 
@@ -40,7 +40,7 @@ class EnterpriseNameInline(admin.TabularInline):
 
 class ContactInline(admin.StackedInline):
     model = Contact
-    filter_horizontal = ('phone', 'url', 'email')
+    filter_horizontal = ('phones', 'urls', 'emails')
     extra = 1
 
 
@@ -63,8 +63,8 @@ class AdvertismentAdmin(admin.ModelAdmin):
 class EnterpriseAdmin(admin.ModelAdmin):
     inlines = [ContactPersonAdmin, EnterpriseNameInline, ContactInline,
                GproduceInline, AdvertismentInline]
-    exclude = ('last_change', 'words')
-    filter_horizontal = ('brand', )
+    exclude = ('last_change',)
+    filter_horizontal = ('brands', )
 
 
 class StreetTitleInline(admin.TabularInline):
