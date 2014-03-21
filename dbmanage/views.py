@@ -220,3 +220,27 @@ def zip_csv_model(path):
             zip_file.write(os.path.join(path, filename), filename)
 
     return zip_fn
+
+
+def handle_uploaded_file(name, f):
+    with open('./export/%s' % name, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+#ToDo: create resposes code
+#ToDo: test
+@method_decorator(csrf_exempt)
+def upload(request):
+    if request.method == 'POST':
+        print request.POST
+        print request.FILES
+        form = UploadFileForm(request.POST, request.FILES)
+        print form
+        if form.is_valid():
+            handle_uploaded_file(form.cleaned_data.get('title'), request.FILES['db'])
+            response = "file uploaded successfully"
+        else:
+            response = "form invalid"
+    else:
+        response = "request is not post"
+    return HttpResponse(response)
