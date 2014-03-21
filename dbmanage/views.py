@@ -1,19 +1,24 @@
 import csv
 from zipfile import ZipFile
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.commands.dumpdata import sort_dependencies
 from django.http import HttpResponse
 import os
-from django.shortcuts import render
-from django.http.response import HttpResponseBadRequest
+from django.shortcuts import render, render_to_response
+from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
+from django.utils.decorators import method_decorator
 from django.utils.timezone import utc
 import datetime
 import shutil
+from django.views.decorators.csrf import csrf_exempt
+from dbmanage.forms import UploadFileForm
 from dbmanage.models import Databases, RegisteredDatabases, Updating
 from dbmanage import cypher
 from feedparser import binascii
-from utils.dbutils import obj_as_dict
+from utils.dbutils import obj_as_dict, get_all_fields, get_all_field_names
 from django.db import models
 from django.core.servers.basehttp import FileWrapper
+from utils.utils import Profiler
 
 MAX_REGISTRATION = 3
 
@@ -97,29 +102,32 @@ def update(request):
     except ObjectDoesNotExist:
         return HttpResponseBadRequest("user not exist")
 
-    if not Updating.objects.filter(last_update__gte=db.last_update).exists():
+    if db.last_update and not Updating.objects.filter(last_update__gte=db.last_update).exists():
         return HttpResponse("already updated %s vs %s -" % (db.last_update, Updating.objects.all()[0]))
 
     upd_query = Updating.objects.order_by('-last_update')
-    
+
     zip_with_highest_datetime = last_update_zip()
-    zip_suit = lambda: zip_with_highest_datetime and creation_datetime(zip_with_highest_datetime).date() >= upd_query[0].last_update > db.last_update
+    zip_suit = lambda: zip_with_highest_datetime and creation_datetime(zip_with_highest_datetime).date() >= upd_query[
+        0].last_update > db.last_update
     is_user_preview_updated = lambda: upd_query.count() >= 2 and db.last_update >= upd_query[1].last_update
-    if upd_query.exists() and zip_suit() and is_user_preview_updated():
+    if db.last_update and upd_query.exists() and zip_suit() and is_user_preview_updated():
         return ZipResponse(zip_with_highest_datetime)
 
-    zipfile = export(db.last_update)
+    with Profiler() as p:
+        zipfile = export(db.last_update)
     if not zipfile:
         return HttpResponse("zip is null %s" % now())
 
-    db.last_update = now()
-    db.save()
-    return ZipResponse(zipfile)
+    # db.last_update = now()
+    # db.save()
+    # return ZipResponse(zipfile)
+    return HttpResponse('ok elapsed %s' % p.elapsed)
 
 
 def last_update_zip():
     dirname = "./export/"
-    is_file = lambda f: os.path.isfile(os.path.join(dirname, f))
+    is_file = lambda file_name: os.path.isfile(os.path.join(dirname, file_name))
     fs = [f for f in os.listdir(dirname) if is_file(f)]
     if len(fs):
         fs.sort()
@@ -139,7 +147,7 @@ def ZipResponse(zipfile):
 
 def export(last_update):
     app = models.get_app('dbe')
-    ms = models.get_models(app, include_auto_created=False)
+    ms = models.get_models(app, include_auto_created=True)
 
     dirname = get_dirname()
 
@@ -172,7 +180,10 @@ def get_dirname():
 
 
 def model_to_csv(model, dirname, **kwargs):
-    if kwargs:
+    has_field = lambda fn: fn in get_all_fields(model)
+    model_has_all_fields_in_query = reduce(lambda acc, x: acc and x,
+                                           [has_field(field_name.split('__')[0]) for field_name in kwargs], True)
+    if False and kwargs and model_has_all_fields_in_query:
         objects = model.objects.filter(**kwargs)
     else:
         objects = model.objects.all()
@@ -185,10 +196,16 @@ def model_to_csv(model, dirname, **kwargs):
 
     with open(file_name, 'w+') as f:
         writer = csv.writer(f)
+        is_first_raw = True
         for o in objects:
-            row = obj_as_dict(o)
+            obj_dict = obj_as_dict(o)
 
-            writer.writerow([row[key] for key in row.keys()])
+            keys = sorted(obj_dict.keys())
+            if is_first_raw:
+                writer.writerow(keys)
+                is_first_raw = False
+
+            writer.writerow([obj_dict[key] for key in keys])
 
 
 def zip_csv_model(path):
