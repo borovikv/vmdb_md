@@ -7,10 +7,10 @@ from django.db.models import ManyToManyField
 from django.db.models.related import RelatedObject
 
 
+# noinspection PyProtectedMember
 def obj_as_dict(obj):
     result = {}
-    for field in get_all_fields(obj):
-        field_name = field if isinstance(field, basestring) else field.name
+    for field_name in get_all_field_names(obj.__class__):
         if hasattr(obj, 'exclude') and field_name in obj.exclude:
             continue
         obj_field = obj._meta.get_field_by_name(field_name)[0]
@@ -21,8 +21,13 @@ def obj_as_dict(obj):
     return result
 
 
-def get_all_fields(obj):
-        return obj.__class__._meta.get_all_field_names()
+# noinspection PyProtectedMember
+def get_all_fields(model):
+    return model._meta.get_all_field_names()
+
+
+def get_all_field_names(model):
+    return [fn if isinstance(fn, basestring) else fn.name for fn in get_all_fields(model)]
 
 
 def get_field_value(obj, field):
