@@ -9,7 +9,7 @@ class Profiler(object):
         self._startTime = time.time()
         return self
 
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.elapsed = time.time() - self._startTime
 
 
