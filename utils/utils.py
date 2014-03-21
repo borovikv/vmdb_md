@@ -1,5 +1,7 @@
 import re
 import time
+from django.utils.timezone import utc
+import datetime
 
 __author__ = 'vladimir'
 
@@ -42,3 +44,11 @@ def is_email(word):
 def get_obj_or_none(model, *args, **kwargs):
     obj = model.objects.filter(**kwargs)
     return obj and obj[0] or None
+
+
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+
+def get_time_format():
+    return '%Y-%m-%d-%H-%M-%S'

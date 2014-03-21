@@ -5,8 +5,7 @@ from dbe.models import Enterprise, Language, BusinessEntityType, \
     Street, StreetTitle, Town, TownTitle, Url, Contact, Person, PersonTitle, \
     ContactPerson, Position, PositionTitle, Good, GoodTitle, Gproduce
 import datetime
-from dbmanage.views import now
-from utils.utils import Profiler
+from utils.utils import Profiler, now
 
 
 def create_varo(request):
