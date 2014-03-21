@@ -1,9 +1,22 @@
 #-*- coding: utf-8 -*-
+from django.http.response import HttpResponse
 from dbe.models import Enterprise, Language, BusinessEntityType, \
     BusinessEntityTitle, Brand, EnterpriseTitle, Phone, Region, RegionTitle, \
     Street, StreetTitle, Town, TownTitle, Url, Contact, Person, PersonTitle, \
     ContactPerson, Position, PositionTitle, Good, GoodTitle, Gproduce
 import datetime
+from dbmanage.views import now
+from utils.utils import Profiler
+
+
+def create_varo(request):
+    amount = int(request.GET.get('amount', 0))
+
+    with Profiler() as p:
+        for _ in xrange(amount):
+            create_test_varo()
+
+    return HttpResponse('created %s enterprises at - %s sec' % (amount, p.elapsed))
 
 
 def create_test_varo():
@@ -22,7 +35,7 @@ def create_test_varo():
     br = Brand(title='varoinform')
     br.save()
     varo.save()
-    varo.brand.add(br)
+    varo.brands.add(br)
     varo.save()
 
     create_title(EnterpriseTitle, 'varo-inform', ru, varo)
@@ -42,7 +55,7 @@ def get_languages():
 
 def create_title(model, title, language, container):
     obj = model()
-    obj.title = title
+    obj.title = '%s - %s' % (title, now())
     obj.language = language
     obj.container = container
     obj.save()
@@ -89,11 +102,11 @@ def create_contact(ent):
         p = Phone(phone=ph)
         p.type = 1
         p.save()
-        contact.phone.add(p)
+        contact.phones.add(p)
     for url in urls:
         u = Url(url=url)
         u.save()
-        contact.url.add(u)
+        contact.urls.add(u)
     contact.save()
 
 
@@ -119,7 +132,7 @@ def create_contact_person(varo, names, phones):
         p = Phone(phone=ph)
         p.type = 1
         p.save()
-        contactperson.phone.add(p)
+        contactperson.phones.add(p)
 
 
 def create_gproduce(varo, titles):
@@ -134,6 +147,3 @@ def create_gproduce(varo, titles):
     gp.good = good
     gp.is_produce = True
     gp.save()
-
-
-
