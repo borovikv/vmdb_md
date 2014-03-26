@@ -1,16 +1,19 @@
+import os
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-import os
 from django.shortcuts import render
-from django.http.response import HttpResponseBadRequest
+from django.http.response import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from feedparser import binascii
+from django.core.servers.basehttp import FileWrapper
+
 from dbmanage.forms import UploadFileForm
 from dbmanage.models import Databases, RegisteredDatabases, Updating
 from dbmanage import cypher
-from feedparser import binascii
-from django.core.servers.basehttp import FileWrapper
 from utils.utils import now
+
 
 MAX_REGISTRATION = 3
 
@@ -96,10 +99,18 @@ def update(request):
     try:
         db = RegisteredDatabases.objects.get(user_id=user_id).database
     except ObjectDoesNotExist:
-        return HttpResponseBadRequest("user not exist")
+        return HttpResponseForbidden("user not exist")
+
+    confirm = request.GET.get('confirm') == 'true'
+    if confirm:
+        db.last_update = now()
+        db.save()
+        response = HttpResponse("OK")
+        return response
 
     if db.last_update and not Updating.objects.filter(last_update__gte=db.last_update).exists():
-        return HttpResponse("already updated %s vs %s -" % (db.last_update, Updating.objects.all()[0]))
+        response = HttpResponseNotFound("already updated %s vs %s -" % (db.last_update, Updating.objects.all()[0]))
+        return response
 
     return file_response("./export/DB.h2.db")
 
