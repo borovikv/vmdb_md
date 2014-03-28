@@ -101,8 +101,12 @@ def update(request):
     except ObjectDoesNotExist:
         return HttpResponseForbidden("user not exist")
 
-    confirm = request.GET.get('confirm') == 'true'
-    if confirm:
+    if request.GET.get('check') == 'true':
+        last_update = db.last_update
+        exists = (not last_update and Updating.objects.count()) or (last_update and Updating.objects.filter(last_update__gte=last_update).exists())
+        return HttpResponse('Value=%s' % ('Yes' if exists else 'No'))
+
+    if request.GET.get('confirm') == 'true':
         db.last_update = now()
         db.save()
         response = HttpResponse("OK")
