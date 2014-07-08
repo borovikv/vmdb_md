@@ -14,7 +14,6 @@ urlpatterns = patterns('',
                        url(r'^admin/', include(admin.site.urls)),
                        url(r'^registry/', include('dbmanage.urls')),
                        url(r'^manage/', include('dbmanage.urls')),
-                       url(r'^create$', 'dbe.views.create_varo'),
 
                        url(r'^accounts/login/$', login, name="login"),
                        url(r'^accounts/logout/$', logout, name="logout"),

@@ -92,31 +92,32 @@ def decrypt_password(epassword, database_id, user_id):
 
 
 def update(request):
-    user_id = request.GET.get('user')
-    if not user_id:
-        return HttpResponseBadRequest("haven't user id")
-
     try:
-        db = RegisteredDatabases.objects.get(user_id=user_id).database
-    except ObjectDoesNotExist:
-        return HttpResponseForbidden("user not exist")
+        db = get_database(request)
+    except ValueError as ve:
+        return HttpResponseBadRequest(ve)
+    except Exception as e:
+        return HttpResponseForbidden(e)
 
-    if request.GET.get('check') == 'true':
-        last_update = db.last_update
-        exists = (not last_update and Updating.objects.count()) or (last_update and Updating.objects.filter(last_update__gte=last_update).exists())
-        return HttpResponse('Value=%s' % ('Yes' if exists else 'No'))
-
-    if request.GET.get('confirm') == 'true':
-        db.last_update = now()
-        db.save()
-        response = HttpResponse("OK")
-        return response
-
-    if db.last_update and not Updating.objects.filter(last_update__gte=db.last_update).exists():
+    exist_new_update = lambda date: Updating.objects.filter(last_update__gte=date).exists()
+    if db.last_update and not exist_new_update(db.last_update):
         response = HttpResponseNotFound("already updated %s vs %s -" % (db.last_update, Updating.objects.all()[0]))
         return response
 
     return file_response("./export/DB.h2.db")
+
+
+def get_database(request):
+    user_id = request.GET.get('user')
+    if not user_id:
+        raise ValueError("value=null_uid")
+    
+    
+    try:
+        db = RegisteredDatabases.objects.get(user_id=user_id).database
+    except ObjectDoesNotExist:
+        raise Exception("value=invalid_uid")
+    return db
 
 
 def file_response(f, content_type='application/zip'):
@@ -125,8 +126,40 @@ def file_response(f, content_type='application/zip'):
     return response
 
 
-#ToDo: create resposes code
-#ToDo: test
+def check(request):
+    try:
+        db = get_database(request)
+    except ValueError as ve:
+        return HttpResponseBadRequest(ve)
+    except Exception as e:
+        return HttpResponseForbidden(e)
+
+
+    last_update = db.last_update
+    
+    never_updated = not last_update and Updating.objects.count()
+    has_new_updates = last_update and Updating.objects.filter(last_update__gte=last_update).exists()
+    
+    exists = never_updated or has_new_updates
+    return HttpResponse('Value=%s' % ('Yes' if exists else 'No'))
+
+
+def confirm(request):
+    try:
+        db = get_database(request)
+    except ValueError as ve:
+        return HttpResponseBadRequest(ve)
+    except Exception as e:
+        return HttpResponseForbidden(e)
+    
+    db.last_update = now()
+    db.save()
+    response = HttpResponse("value=OK")
+    return response
+    
+
+# ToDo: create resposes code
+# ToDo: test
 @method_decorator(csrf_exempt)
 def upload(request):
     if request.method == 'POST':
