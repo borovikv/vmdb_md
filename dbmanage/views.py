@@ -43,7 +43,7 @@ def registry_phone(request):
             return render(request, 'db_registry/phone.html', {'password':password})
         
         except ObjectDoesNotExist as e:
-            context['message'] = e
+            context['message'] = 'Wrong database uid - %s' % form.cleaned_data['uid']
         
         except Exception as e:
             context['message'] = e
