@@ -131,7 +131,7 @@ def check(request):
     last_update = db.last_update
     
     never_updated = not last_update and Updating.objects.count()
-    has_new_updates = last_update and Updating.objects.filter(last_update__gte=last_update).exists()
+    has_new_updates = last_update and Updating.objects.filter(last_update__gt=last_update).exists()
     
     exists = never_updated or has_new_updates
     return HttpResponse('Value=%s' % ('Yes' if exists else 'No'))
