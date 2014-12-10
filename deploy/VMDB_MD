@@ -1,33 +1,33 @@
-<VirtualHost 192.168.0.107:8080>
+<VirtualHost vmdb.varo-inform.com>
     # Описание сервера
     ServerAdmin borovikv.vladimir@gmail.com	
-    ServerName varodb
+    ServerName vmdb.varo-inform.com
 
     # Логи
-    ErrorLog    /home/drifter/development/aptana/varodb/logs/error_log
-    CustomLog   /home/drifter/development/aptana/varodb/logs/access_log common
+    ErrorLog    /home/user/projects/vmdb_md/logs/error_log
+    CustomLog   /home/user/projects/vmdb_md/logs/access_log common
 
     # wsgi-обработчик (см. ниже)
-    WSGIScriptAlias / /home/drifter/development/aptana/varodb/deploy/django.wsgi
+    WSGIScriptAlias / /home/user/projects/vmdb_md/deploy/django.wsgi
     # Параметры запуска wsgi
-    # home=/home/drifter/development/aptana/varodb \
+    # home=/home/user/projects/vmdb_md \
     # WSGIDaemonProcess dw-site user=drifter group=d processes=2 threads=4 maximum-requests=100 display-name=apache-dw-wsgi
     # WSGIProcessGroup dw-site
     WSGIDaemonProcess heracles-site processes=2 maximum-requests=5 threads=1
 	
-	<Directory /home/drifter/development/aptana/varodb>
+	<Directory /home/user/projects/vmdb_md>
 		Order deny,allow
 		Allow from all
 	</Directory>
 	
     # Статические файлы проекта
-    Alias "/media/" "/home/drifter/development/aptana/varodb/media/"
+    Alias "/media/" "/home/user/projects/vmdb_md/media/"
     <Location "/media/">
         SetHandler None
     </Location>
 
     # Статические файлы проекта
-    Alias "/static/" "/home/drifter/development/aptana/varodb/static/"
+    Alias "/static/" "/home/user/projects/vmdb_md/static/"
     <Location "/static/">
         SetHandler None
     </Location>
