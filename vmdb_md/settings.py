@@ -10,7 +10,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-#/home/drifter/development/aptana/varodb/
 PROGEGET_FOLDER = os.path.dirname(os.path.dirname(__file__))
 
 DATABASES = {
@@ -106,10 +105,10 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'varodb.urls'
+ROOT_URLCONF = 'vmdb_md.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'varodb.wsgi.application'
+WSGI_APPLICATION = 'vmdb_md.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".

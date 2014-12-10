@@ -8,7 +8,7 @@ if PROJECT_ROOT not in sys.path:
 	sys.path.append( PROJECT_ROOT )
 
 # Установка файла настроек
-project_name = 'varodb'
+project_name = 'vmdb_md'
 os.environ["DJANGO_SETTINGS_MODULE"] = project_name + ".settings"
 
 #f = open('/home/drifter/development/testfile', 'w+')
