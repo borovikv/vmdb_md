@@ -17,5 +17,4 @@ urlpatterns = patterns('',
 
                        url(r'^accounts/login/$', login, name="login"),
                        url(r'^accounts/logout/$', logout, name="logout"),
-                       url(r'^exports/', include('data_exports.urls', namespace='data_exports')),
 )
