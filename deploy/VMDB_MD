@@ -1,7 +1,7 @@
-<VirtualHost vmdb.varo-inform.com>
+<VirtualHost *:80>
     # Описание сервера
     ServerAdmin borovikv.vladimir@gmail.com	
-    ServerName vmdb.varo-inform.com
+    ServerName vmdb.md
 
     # Логи
     ErrorLog    /home/user/projects/vmdb_md/logs/error_log
@@ -9,11 +9,13 @@
 
     # wsgi-обработчик (см. ниже)
     WSGIScriptAlias / /home/user/projects/vmdb_md/deploy/django.wsgi
+    
     # Параметры запуска wsgi
     # home=/home/user/projects/vmdb_md \
     # WSGIDaemonProcess dw-site user=drifter group=d processes=2 threads=4 maximum-requests=100 display-name=apache-dw-wsgi
-    # WSGIProcessGroup dw-site
-    WSGIDaemonProcess heracles-site processes=2 maximum-requests=5 threads=1
+    WSGIDaemonProcess vmdb-site processes=2 maximum-requests=5 threads=1
+    WSGIProcessGroup vmdb-site
+    
 	
 	<Directory /home/user/projects/vmdb_md>
 		Order deny,allow
