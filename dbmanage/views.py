@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 def registry_online(request):
     context = {}
     if request.GET:
-        uid = request.Get.get('id')
+        uid = request.GET.get('id')
         
         try:
             password = registry(uid)
