@@ -1,36 +1,39 @@
-from django.db.backends.dummy.base import IntegrityError
+import os
+
 from django.db.utils import IntegrityError
-from django.shortcuts import render_to_response, redirect
-from dbmanage.forms import UploadFileForm, RegistrationDbForm, GeneratorForm
-from dbmanage.models import Databases, RegisteredDatabases, Updating
+
+from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.http.response import HttpResponseBadRequest, HttpResponseForbidden, \
-    HttpResponseNotFound, HttpResponseRedirect
+    HttpResponseNotFound
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from utils.utils import now
-import os
 from django.contrib.auth.decorators import login_required
+
+from dbmanage.forms import UploadFileForm, RegistrationDbForm, GeneratorForm
+
+from dbmanage.models import Databases, RegisteredDatabases, Updating
+from utils.utils import now
 
 
 def registry_online(request):
     context = {}
     if request.GET:
         uid = request.GET.get('id')
-        
+
         try:
             password = registry(uid)
             context = {'status': 'OK', 'value': password}
-        
+
         except ObjectDoesNotExist as e:
             context = {'status': 'NO', 'value': 'wrong id'}
-        
+
         except Exception as e:
             context = {'status': 'NO', 'value': e}
-            
+
         return render(request, 'db_registry/online.html', context)
 
     return HttpResponseBadRequest()
@@ -43,14 +46,14 @@ def registry_phone(request):
     if form.is_valid():
         try:
             password = registry(form.cleaned_data['uid'])
-            return render(request, 'db_registry/phone.html', {'password':password})
-        
+            return render(request, 'db_registry/phone.html', {'password': password})
+
         except ObjectDoesNotExist as e:
             context['message'] = 'Wrong database uid - %s' % form.cleaned_data['uid']
-        
+
         except Exception as e:
             context['message'] = e
-    
+
     context['form'] = form
     return render(request, 'db_registry/phone_form.html', context)
 
@@ -58,8 +61,8 @@ def registry_phone(request):
 def registry(uid):
     if not uid:
         raise Exception("Empty uid")
-    
-    db = Databases.objects.get(database_id=uid) 
+
+    db = Databases.objects.get(database_id=uid)
     rdb = None
     try:
         rdb = RegisteredDatabases.objects.get(database=db)
@@ -67,19 +70,20 @@ def registry(uid):
             raise Exception("Registration exceeding")
     except ObjectDoesNotExist:
         pass
-    
+
     if rdb:
         rdb.counter += 1
-        rdb.save()  
+        rdb.save()
     else:
         rdb = RegisteredDatabases()
         rdb.database = db
         rdb.first_date = now()
         rdb.counter = 1
         rdb.save()
-    
+
     return db.database_password
-        
+
+
 ################################################################################
 
 def update(request):
@@ -103,8 +107,7 @@ def get_database(request):
     uid = request.GET.get('user')
     if not uid:
         raise ValueError("value=null_uid")
-    
-    
+
     try:
         db = Databases.objects.get(database_id=uid)
         if RegisteredDatabases.objects.filter(database=db).exists():
@@ -113,7 +116,6 @@ def get_database(request):
             raise Exception("value=unregistered_db")
     except ObjectDoesNotExist:
         raise Exception("value=invalid_uid")
-    return db
 
 
 def file_response(f, content_type='application/zip'):
@@ -130,12 +132,11 @@ def check(request):
     except Exception as e:
         return HttpResponseForbidden(e)
 
-
     last_update = db.last_update
-    
+
     never_updated = not last_update and Updating.objects.count()
     has_new_updates = last_update and Updating.objects.filter(last_update__gt=last_update).exists()
-    
+
     exists = never_updated or has_new_updates
     return HttpResponse('Value=%s' % ('Yes' if exists else 'No'))
 
@@ -147,12 +148,12 @@ def confirm(request):
         return HttpResponseBadRequest(ve)
     except Exception as e:
         return HttpResponseForbidden(e)
-    
+
     db.last_update = now()
     db.save()
     response = HttpResponse("value=OK")
     return response
-    
+
 
 # ToDo: create resposes code
 # ToDo: test
@@ -178,7 +179,7 @@ def handle_uploaded_file(name, f):
         for chunk in f.chunks():
             destination.write(chunk)
 
-
+@login_required
 def generate(request):
     form = GeneratorForm(request.POST)
     if form.is_valid():
@@ -195,3 +196,8 @@ def generate(request):
         return redirect('/admin')
 
     return render(request, 'generate.html', {'form': form})
+
+
+@login_required
+def show(request):
+    return render(request, 'show.html', {'ids': Databases.objects.filter(registered=None)} )

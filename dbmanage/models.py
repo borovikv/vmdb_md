@@ -24,10 +24,10 @@ class Databases(models.Model):
 
 
 class RegisteredDatabases(models.Model):
-    database = models.ForeignKey(Databases)
+    database = models.OneToOneField(Databases, related_name='registered')
     counter = models.PositiveSmallIntegerField(default=0)
-    first_date = models.DateField()
-    last_date = models.DateField(auto_now_add=True)
+    first_date = models.DateField(auto_now_add=True)
+    last_date = models.DateField(auto_now=True)
 
     def __unicode__(self):
         return u'%s' % (self.database)
