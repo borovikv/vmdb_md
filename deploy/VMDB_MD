@@ -1,7 +1,7 @@
-<VirtualHost *:80>
+<VirtualHost *:8000>
     # Описание сервера
     ServerAdmin borovikv.vladimir@gmail.com	
-    ServerName vmdb.md
+    ServerName vmdb.varo-inform.com
 
     # Логи
     ErrorLog    /home/user/projects/vmdb_md/logs/error_log
@@ -28,9 +28,12 @@
         SetHandler None
     </Location>
 
-    # Статические файлы проекта
-    Alias "/static/" "/home/user/projects/vmdb_md/static/"
-    <Location "/static/">
-        SetHandler None
-    </Location>
+    # Статические файлы проекта   
+    Alias /static/admin "/usr/local/lib/python2.7/dist-packages/django/contrib/admin/static/admin"
+	<Directory "/usr/local/lib/python2.7/dist-packages/django/contrib/admin/static">
+		Order allow,deny
+		Options Indexes
+		Allow from all
+		IndexOptions FancyIndexing
+	</Directory>
 </VirtualHost>
