@@ -19,7 +19,7 @@ class Databases(models.Model):
     def __unicode__(self):
         return u'%s' % self.database_id
     
-    def max_regestrations(self):
+    def max_registrations(self):
         return self.registration_type
 
 

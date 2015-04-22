@@ -66,7 +66,7 @@ def registry(uid):
     rdb = None
     try:
         rdb = RegisteredDatabases.objects.get(database=db)
-        if db.registration_type != Databases.PERPETUAL and rdb.counter >= db.max_regestrations():
+        if db.registration_type != Databases.PERPETUAL and rdb.counter >= db.max_registrations():
             raise Exception("Registration exceeding")
     except ObjectDoesNotExist:
         pass
