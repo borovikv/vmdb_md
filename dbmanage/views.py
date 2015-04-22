@@ -1,10 +1,13 @@
-from dbmanage.forms import UploadFileForm, RegistrationDbForm
+from django.db.backends.dummy.base import IntegrityError
+from django.db.utils import IntegrityError
+from django.shortcuts import render_to_response, redirect
+from dbmanage.forms import UploadFileForm, RegistrationDbForm, GeneratorForm
 from dbmanage.models import Databases, RegisteredDatabases, Updating
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.http.response import HttpResponseBadRequest, HttpResponseForbidden, \
-    HttpResponseNotFound
+    HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -174,3 +177,21 @@ def handle_uploaded_file(name, f):
     with open('./export/%s' % name, 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
+
+
+def generate(request):
+    form = GeneratorForm(request.POST)
+    if form.is_valid():
+        text = form.cleaned_data['text']
+        parts = [[s.strip() for s in line.split('=')] for line in text.split('\n')]
+        for uid, db_password in parts:
+            d = Databases()
+            d.database_id = uid
+            d.database_password = db_password
+            try:
+                d.save()
+            except IntegrityError:
+                pass
+        return redirect('/admin')
+
+    return render(request, 'generate.html', {'form': form})

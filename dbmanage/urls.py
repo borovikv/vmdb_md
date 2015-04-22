@@ -10,4 +10,5 @@ urlpatterns = patterns('dbmanage.views',
                        url(r'update/check/$', 'check', name='update-check'),
                        url(r'update/confirm/$', 'confirm', name='update-confirm'),
                        url(r'upload/$', 'upload'),
+                       url(r'generate/$', 'generate', name='generate'),
 )

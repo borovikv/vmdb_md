@@ -8,4 +8,7 @@ class UploadFileForm(forms.Form):
     
 class RegistrationDbForm(forms.Form):
     uid = forms.CharField(max_length=25)
-    
+
+
+class GeneratorForm(forms.Form):
+    text = forms.CharField(widget=forms.widgets.Textarea())

@@ -11,7 +11,7 @@ class Databases(models.Model):
         (EXTENDED, 'extended'),
     )
     
-    database_id = models.CharField(max_length=25)
+    database_id = models.CharField(max_length=16, unique=True)
     database_password = models.CharField(max_length=32)
     last_update = models.DateField(null=True, blank=True)
     registration_type = models.PositiveSmallIntegerField(choices=REG_TYPE_CHOICES, default=STANDARD)
