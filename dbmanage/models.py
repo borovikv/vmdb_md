@@ -30,7 +30,7 @@ class RegisteredDatabases(models.Model):
     last_date = models.DateField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s' % (self.database)
+        return u'%s' % self.database
 
 
 class Updating(models.Model):
