@@ -9,9 +9,9 @@ class Database(models.Model):
     SOLD = 'sold'
     REGISTERED = 'registered'
     STATUS_CHOICES = (
-        (UNUSED, UNUSED),
-        (SOLD, SOLD),
-        (REGISTERED, REGISTERED)
+        (UNUSED, _(UNUSED)),
+        (SOLD, _(SOLD)),
+        (REGISTERED, _(REGISTERED))
     )
     database_id = models.CharField(max_length=16, unique=True, verbose_name=_('database_id'))
     database_password = models.CharField(max_length=32, verbose_name=_('password'))
@@ -35,10 +35,14 @@ class Database(models.Model):
             self.status = Database.UNUSED
         super(Database, self).save(force_insert, force_update, using, update_fields)
 
+    class Meta:
+        verbose_name = _('database')
+        verbose_name_plural = _('databases')
+
 
 class Registration(models.Model):
     database = models.ForeignKey(Database, related_name='registrations')
-    date = models.DateField()
+    date = models.DateField(verbose_name=_('date'))
 
     def __unicode__(self):
         return u'%s' % self.date
@@ -47,6 +51,10 @@ class Registration(models.Model):
              update_fields=None):
         self.date = timezone.now()
         super(Registration, self).save(force_insert, force_update, using, update_fields)
+
+    class Meta:
+        verbose_name = _('registration')
+        verbose_name_plural = _('registrations')
 
 
 class Updating(models.Model):

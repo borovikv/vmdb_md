@@ -10,12 +10,12 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-PROGEGET_FOLDER = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROGEGET_FOLDER, 'sqlite.db'),                      # Or path to database file if using sqlite3.
+        'NAME': os.path.join(BASE_DIR, 'sqlite.db'),                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': '',
         'PASSWORD': '',
@@ -34,11 +34,11 @@ ALLOWED_HOSTS = []
 # In a Windows environment this must be set to your system time zone.
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Chisinau'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 SITE_ID = 1
 
@@ -116,7 +116,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROGEGET_FOLDER, 'templates'),
+    os.path.join(BASE_DIR, 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -131,5 +131,9 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'dbmanage',
+)
+
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale/'),
 )
 
