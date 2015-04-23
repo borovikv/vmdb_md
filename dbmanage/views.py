@@ -38,7 +38,7 @@ def registry_online(request):
 
 @login_required
 def registry_phone(request):
-    form = RegistrationDbForm(request.POST)
+    form = RegistrationDbForm(request.POST or None)
     context = {}
     if form.is_valid():
         try:
@@ -64,7 +64,9 @@ def registry(uid):
         raise Exception("Registration exceeding")
 
     else:
+        db.status = Database.REGISTERED
         db.registrations.create()
+        db.save()
 
     return db.database_password
 
@@ -166,7 +168,7 @@ def handle_uploaded_file(name, f):
 
 @login_required
 def generate(request):
-    form = GeneratorForm(request.POST)
+    form = GeneratorForm(request.POST or None)
     if form.is_valid():
         text = form.cleaned_data['text']
         parts = [[s.strip() for s in line.split('=')] for line in text.split('\n')]
@@ -185,4 +187,4 @@ def generate(request):
 
 @login_required
 def show(request):
-    return render(request, 'show.html', {'ids': Database.objects.filter(registered=None)})
+    return render(request, 'show.html', {'ids': Database.objects.filter(status=Database.UNUSED)})

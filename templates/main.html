@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<ul>
+    <li><a href="{% url 'admin:dbmanage_database_changelist' %}">Все лицензии</a></li>
+    <li><a href="{% url 'show-unused' %}">Не использованные лицензии</a></li>
+    <li><a href="{% url 'db_registry-phone' %}">Регистрация по телефону</a></li>
+    <li><a href="{% url 'admin:index' %}">Админ панель</a></li>
+    {% if user.username == 'vladimir' %}
+        <li><a href="{% url 'generate' %}">Добавить лицензии</a></li>
+    {% endif %}
+</ul>
+{% endblock %}
