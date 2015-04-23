@@ -4,8 +4,8 @@ Created on Dec 23, 2013
 @author: drifter
 """
 from django.contrib import admin
-from dbmanage.models import Databases, RegisteredDatabases, Updating
+from dbmanage.models import *
 
-admin.site.register(Databases)
-admin.site.register(RegisteredDatabases)
+admin.site.register(Database)
 admin.site.register(Updating)
+admin.site.register(Registration)

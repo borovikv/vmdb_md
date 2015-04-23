@@ -1,6 +1,7 @@
-from dbmanage.models import Databases
+from django.core.urlresolvers import reverse
+from dbmanage.models import Database
 from dbmanage.cypher import encode, decode, create_key
-from dbmanage.views import registry, decrypt_password, get_registration_code
+from dbmanage.views import registry
 from django.test import TestCase, utils
 from django.test.client import Client
 import binascii
@@ -11,82 +12,66 @@ utils.setup_test_environment()
 class Test(TestCase):
     def setUp(self):
         self.str_db_id = "1111111111111111"
-        self.hex_db_id = int(self.str_db_id, 16)
         self.user_id = "000C299B664E"
-        db = Databases()
-        db.database_id = self.hex_db_id
+        db = Database()
+        db.database_id = self.str_db_id
         db.database_password = "secret"
         db.save()
 
-    def test_create_key(self):
-        database_id = "1111111111111111"
-        user_id = "000C299B664E"
-        key = create_key(database_id, user_id)
-
-        java_data = "AB89EB4D35BFE274DE77B8318E426089".decode('hex')
-
-        self.assertEquals(key, bytearray(java_data))
-
-    def test_encode(self):
-        word = "the word"
-        key = create_key(self.str_db_id, self.user_id)
-        encode_word = encode(word, key)
-        self.assertEqual(word, decode(encode_word, key))
 
     def test_registration(self):
-        epassword = registry(self.get_registry_data())["value"]
+        print(Database.objects.all())
+        epassword = registry(self.str_db_id)
         self.assertTrue(epassword)
-        print Databases.objects.all()
-        db = Databases.objects.get(database_id=self.hex_db_id)
+        print Database.objects.all()
+        db = Database.objects.get(database_id=self.str_db_id)
         password = db.database_password
         print password
-        self.assertEquals(password, decrypt_password(epassword.decode("hex"), self.str_db_id, self.user_id))
 
-    def get_registry_data(self):
-        return get_registration_code(self.str_db_id, self.user_id)
-
-    def test_registry_succes(self):
+    def test_registry_success(self):
+        print("-"*100)
         c = Client()
-        response = c.get("/db_registry/online/", {"code": self.get_registry_data()})
+        response = c.get(reverse('db_registry-online'), {"id": self.str_db_id})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context)
 
         status = response.context.get('status')
-        self.assertEqual(status, 'SUCCES')
+        self.assertEqual('OK', status)
 
         value = response.context['value']
         self.assertTrue(value)
+        print(Database.objects.get(database_id=self.str_db_id).registrations.all())
+        print("-"*100)
 
-    def test_regisrty_error_not_exist(self):
+    def test_registry_error_not_exist(self):
         c = Client()
-        response = c.get("/db_registry/online/", {"code": get_registration_code("2" * 16, self.user_id)})
+        response = c.get(reverse('db_registry-online'), {"id": '22222222222'})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context)
 
         status = response.context['status']
-        self.assertEqual(status, 'ERROR')
+        self.assertEqual('NO', status)
 
         value = response.context['value']
-        self.assertEquals(value, 'wrong')
+        self.assertEquals('wrong id', value)
 
-    def test_regisrty_error_end(self):
+    def test_registrations_exceeding(self):
         c = Client()
-        c.get("/db_registry/online/", {"code": get_registration_code('1111111111111111', '000C299B664E')})
-        c.get("/db_registry/online/", {"code": get_registration_code('1111111111111111', '100C299B664E')})
-        c.get("/db_registry/online/", {"code": get_registration_code('1111111111111111', '200C299B664E')})
-        response = c.get("/db_registry/online/", {"code": get_registration_code('1111111111111111', '300C299B664E')})
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context)
+        for _ in range(4):
+            response = c.get(reverse('db_registry-online'), {"id": self.str_db_id})
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.context)
 
+        # noinspection PyUnboundLocalVariable
         status = response.context.get('status')
-        self.assertEqual(status, 'ERROR')
+        self.assertEqual('NO', status)
 
-        value = response.context.get('value')
-        self.assertEquals(value, 'spent')
+        value = response.context['value']
+        self.assertEqual('Registration exceeding', str(value))
 
     def test_bad_request(self):
         c = Client()
-        response = c.get("/db_registry/online/")
+        response = c.get(reverse('db_registry-online'))
         print response.status_code
         self.assertEqual(response.status_code, 400)
 

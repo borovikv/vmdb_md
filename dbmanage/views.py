@@ -1,7 +1,6 @@
 import os
 
 from django.db.utils import IntegrityError
-
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.servers.basehttp import FileWrapper
@@ -14,16 +13,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 from dbmanage.forms import UploadFileForm, RegistrationDbForm, GeneratorForm
-
-from dbmanage.models import Databases, RegisteredDatabases, Updating
+from dbmanage.models import Database, Updating
 from utils.utils import now
 
 
 def registry_online(request):
-    context = {}
     if request.GET:
         uid = request.GET.get('id')
-
+        print uid
         try:
             password = registry(uid)
             context = {'status': 'OK', 'value': password}
@@ -61,25 +58,13 @@ def registry_phone(request):
 def registry(uid):
     if not uid:
         raise Exception("Empty uid")
+    db = Database.objects.get(database_id=uid)
 
-    db = Databases.objects.get(database_id=uid)
-    rdb = None
-    try:
-        rdb = RegisteredDatabases.objects.get(database=db)
-        if db.registration_type != Databases.PERPETUAL and rdb.counter >= db.max_registrations():
-            raise Exception("Registration exceeding")
-    except ObjectDoesNotExist:
-        pass
+    if not db.has_available_registrations():
+        raise Exception("Registration exceeding")
 
-    if rdb:
-        rdb.counter += 1
-        rdb.save()
     else:
-        rdb = RegisteredDatabases()
-        rdb.database = db
-        rdb.first_date = now()
-        rdb.counter = 1
-        rdb.save()
+        db.registrations.create()
 
     return db.database_password
 
@@ -109,8 +94,8 @@ def get_database(request):
         raise ValueError("value=null_uid")
 
     try:
-        db = Databases.objects.get(database_id=uid)
-        if RegisteredDatabases.objects.filter(database=db).exists():
+        db = Database.objects.get(database_id=uid)
+        if db.status == Database.REGISTERED:
             return db
         else:
             raise Exception("value=unregistered_db")
@@ -186,7 +171,7 @@ def generate(request):
         text = form.cleaned_data['text']
         parts = [[s.strip() for s in line.split('=')] for line in text.split('\n')]
         for uid, db_password in parts:
-            d = Databases()
+            d = Database()
             d.database_id = uid
             d.database_password = db_password
             try:
@@ -200,4 +185,4 @@ def generate(request):
 
 @login_required
 def show(request):
-    return render(request, 'show.html', {'ids': Databases.objects.filter(registered=None)} )
+    return render(request, 'show.html', {'ids': Database.objects.filter(registered=None)})
